@@ -1,0 +1,17 @@
+security:
+  jwt:
+    secret-key: ${SECRET_KEY}
+    expiration-time: ${EXPIRATION_TIME}
+
+spring:
+  application:
+    name: taskFlow
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
