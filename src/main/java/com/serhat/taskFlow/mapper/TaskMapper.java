@@ -1,6 +1,7 @@
 package com.serhat.taskFlow.mapper;
 
 import com.serhat.taskFlow.dto.objects.TaskDto;
+import com.serhat.taskFlow.dto.requests.AdminMultipleTaskRequest;
 import com.serhat.taskFlow.dto.requests.AdminTaskRequest;
 import com.serhat.taskFlow.dto.requests.UserTaskRequest;
 import com.serhat.taskFlow.entity.Admin;
@@ -10,6 +11,8 @@ import com.serhat.taskFlow.entity.enums.TaskStatus;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -53,6 +56,19 @@ public class TaskMapper {
                 .assignedBy(admin)
                 .assignedTo(currentUser)
                 .keywords(adminTaskRequest.keywords())
+                .build();
+    }
+
+    public Task toAdminTaskEntity(AdminMultipleTaskRequest multipleTaskRequest, AppUser currentUser, Admin admin) {
+        return Task.builder()
+                .title(multipleTaskRequest.title())
+                .description(multipleTaskRequest.description())
+                .status(TaskStatus.valueOf(multipleTaskRequest.status()))
+                .dueDate(multipleTaskRequest.dueDate() != null ?
+                        dateRangeParser.parseStartDate(multipleTaskRequest.dueDate()) : null)
+                .assignedBy(admin)
+                .assignedTo(currentUser)
+                .keywords(multipleTaskRequest.keywords())
                 .build();
     }
 

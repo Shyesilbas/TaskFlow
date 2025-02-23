@@ -27,4 +27,9 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByAssignedToAndKeywordsIn(AppUser assignedTo, List<String> keywords);
     List<Task> findByAssignedByAndKeywordsIn(Admin admin, List<String> keywords);
 
+    List<Task> findByAssignedToAndStatusNot(AppUser user, TaskStatus taskStatus);
+
+    long countByAssignedToAndStatus(AppUser user, TaskStatus taskStatus);
+
+    long countByAssignedToAndDueDateBefore(AppUser user, LocalDateTime now);
 }

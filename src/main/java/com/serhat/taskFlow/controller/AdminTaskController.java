@@ -3,6 +3,8 @@ package com.serhat.taskFlow.controller;
 import com.serhat.taskFlow.dto.objects.AppUserDto;
 import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
+import com.serhat.taskFlow.dto.objects.UserTaskStatsDto;
+import com.serhat.taskFlow.dto.requests.AdminMultipleTaskRequest;
 import com.serhat.taskFlow.dto.requests.AdminTaskRequest;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
 import com.serhat.taskFlow.service.AdminTaskService;
@@ -47,6 +49,13 @@ public class AdminTaskController {
         return ResponseEntity.ok(notifications);
     }
 
+    @GetMapping("/userTaskStats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserTaskStatsDto>> userTaskStats(){
+        List<UserTaskStatsDto> userTaskStats = adminTaskService.getUserTaskStats();
+        return ResponseEntity.ok(userTaskStats);
+    }
+
 
     @GetMapping("/getTasksAssignedToUser")
     @PreAuthorize("hasRole('ADMIN')")
@@ -85,6 +94,19 @@ public class AdminTaskController {
         TaskDto task = adminTaskService.updateTask(taskId, updatedTaskRequest);
         return ResponseEntity.ok(task);
     }
+    @GetMapping("/searchTasksByKeyword")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<TaskDto>> searchTasksByKeyword(@RequestParam List<String> keywords) {
+        List<TaskDto> tasks = adminTaskService.searchTasksByKeyword(keywords);
+        return ResponseEntity.ok(tasks);
+    }
 
+    @PostMapping("/assignTaskToMultipleUsers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<TaskDto>> assignTaskToMultipleUsers(
+            @RequestBody AdminMultipleTaskRequest taskRequest) {
+        List<TaskDto> tasks = adminTaskService.assignTaskToMultipleUsers(taskRequest);
+        return ResponseEntity.ok(tasks);
+    }
 
 }

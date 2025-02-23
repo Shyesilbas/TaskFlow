@@ -2,6 +2,7 @@ package com.serhat.taskFlow.service;
 
 import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
+import com.serhat.taskFlow.dto.objects.TaskStatsDto;
 import com.serhat.taskFlow.dto.requests.AdminDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
 import com.serhat.taskFlow.dto.requests.UserTaskRequest;
@@ -11,6 +12,7 @@ import com.serhat.taskFlow.entity.Notification;
 import com.serhat.taskFlow.entity.Task;
 import com.serhat.taskFlow.entity.enums.NotificationType;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
+import com.serhat.taskFlow.exception.TaskNotFoundException;
 import com.serhat.taskFlow.interfaces.AdminInterface;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
 import com.serhat.taskFlow.interfaces.UserInterface;
@@ -22,36 +24,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @Slf4j
 public class UserTaskService extends BaseTaskService {
 
-    private final TaskMapper taskMapper;
-    private final NotificationService notificationService;
-    public UserTaskService(TaskRepository taskRepository,
-                           TaskMapper taskMapper,
-                           DateRangeParser dateRangeParser,
-                           UserInterface userInterface,
-                           AdminInterface adminInterface,
-                           NotificationService notificationService) {
-        super(taskRepository, taskMapper, dateRangeParser, userInterface , adminInterface);
-        this.taskMapper=taskMapper;
-        this.notificationService=notificationService;
+    public UserTaskService(TaskRepository taskRepository, TaskMapper taskMapper, DateRangeParser dateRangeParser,
+                           UserInterface userInterface, AdminInterface adminInterface, NotificationService notificationService) {
+        super(taskRepository, taskMapper, dateRangeParser, userInterface, adminInterface, notificationService);
     }
 
+    /*
     @Transactional
     public TaskDto createTask(UserTaskRequest taskRequest) {
         String username = getCurrentUsername();
         log.info("Creating task for user: {}", username);
 
         AppUser currentUser = getCurrentUser();
-
         Task task = taskMapper.toUserTaskEntity(taskRequest, currentUser);
 
         Task savedTask = taskRepository.save(task);
-        notificationService.sendNotificationToUser(currentUser, NotificationType.TASK_ASSIGNED,"You created Task with id "+task.getTaskId()+" successfully");
+        notificationService.sendNotificationToUser(currentUser, NotificationType.TASK_ASSIGNED,
+                "Task '" + savedTask.getTitle() + "' (ID: " + savedTask.getTaskId() + ") created successfully");
         log.info("Task created successfully with ID: {} for user: {}", savedTask.getTaskId(), username);
         return taskMapper.toTaskDto(savedTask);
     }
@@ -61,7 +57,6 @@ public class UserTaskService extends BaseTaskService {
         log.info("Fetching tasks created by user: {}", username);
 
         AppUser user = getCurrentUser();
-
         List<Task> tasksICreated = taskRepository.findByAssignedToAndAssignedByIsNull(user);
         log.debug("User fetched {} tasks they created", tasksICreated.size());
 
@@ -69,6 +64,7 @@ public class UserTaskService extends BaseTaskService {
                 .map(taskMapper::toTaskDto)
                 .toList();
     }
+    */
 
     public List<TaskDto> tasksAssignedToMe() {
         try {
@@ -76,7 +72,6 @@ public class UserTaskService extends BaseTaskService {
             log.info("Fetching tasks assigned to user: {}", username);
 
             AppUser user = getCurrentUser();
-
             List<Task> tasksAssignedToMe = taskRepository.findByAssignedTo(user);
             log.debug("User fetched {} tasks assigned to them", tasksAssignedToMe.size());
 
@@ -85,51 +80,75 @@ public class UserTaskService extends BaseTaskService {
                     .map(taskMapper::toTaskDto)
                     .toList();
         } catch (RuntimeException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to fetch assigned tasks: " + e.getMessage(), e);
         }
     }
 
-    public List<TaskDto> findByStatus(TaskStatus status){
+    public List<TaskDto> findByStatus(TaskStatus status) {
         String username = getCurrentUsername();
         log.info("User {} listing tasks with status: {}", username, status);
         AppUser user = getCurrentUser();
 
-        List<Task> tasksByStatus = taskRepository.findByAssignedToAndStatus(user,status);
-
+        List<Task> tasksByStatus = taskRepository.findByAssignedToAndStatus(user, status);
         return tasksByStatus.stream()
                 .map(taskMapper::toTaskDto)
                 .toList();
     }
 
-    public AdminDto myAdmin(){
+    public AdminDto myAdmin() {
         String username = getCurrentUsername();
         log.info("User {} looking for their admin", username);
         AppUser user = getCurrentUser();
 
         Admin admin = user.getAdmin();
+        if (admin == null) {
+            return null;
+        }
 
-        return new AdminDto(
-                admin.getUsername(),
-                admin.getEmail(),
-                admin.getPhone()
-        );
+        return new AdminDto(admin.getUsername(), admin.getEmail(), admin.getPhone());
     }
 
-    public List<NotificationDto> userNotifications(){
+    public TaskStatsDto getTaskStats() {
         String username = getCurrentUsername();
-        log.info("User {} looking for their admin", username);
+        log.info("User {} fetching task stats", username);
+        AppUser user = getCurrentUser();
+
+        long completed = taskRepository.countByAssignedToAndStatus(user, TaskStatus.DONE);
+        long todo = taskRepository.countByAssignedToAndStatus(user, TaskStatus.TODO);
+        long inProgress = taskRepository.countByAssignedToAndStatus(user, TaskStatus.IN_PROGRESS);
+        long overdue = taskRepository.countByAssignedToAndDueDateBefore(user, LocalDateTime.now());
+        return new TaskStatsDto(todo, inProgress, completed, overdue);
+    }
+
+    public List<TaskDto> getActiveTasks() {
+        String username = getCurrentUsername();
+        log.info("User {} fetching active tasks", username);
+        AppUser user = getCurrentUser();
+
+        List<Task> activeTasks = taskRepository.findByAssignedToAndStatusNot(user, TaskStatus.DONE);
+        return activeTasks.stream()
+                .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
+    public List<NotificationDto> userNotifications() {
+        String username = getCurrentUsername();
+        log.info("User {} fetching their notifications", username);
         AppUser user = getCurrentUser();
 
         List<Notification> notifications = user.getNotifications();
+        if (notifications == null) {
+            return Collections.emptyList();
+        }
 
         return notifications.stream()
                 .map(notification -> new NotificationDto(
                         notification.getMessage(),
                         notification.getType(),
-                        notification.getCreatedAt()
-                ))
+                        notification.getCreatedAt()))
                 .toList();
     }
+
     public List<TaskDto> fetchUpcomingTasks() {
         String username = getCurrentUsername();
         log.info("Fetching upcoming tasks for user: {}", username);
@@ -146,34 +165,45 @@ public class UserTaskService extends BaseTaskService {
                 .toList();
     }
 
-
-    public List<TaskDto> searchTasksByKeyword(List<String> keyword) {
+    public List<TaskDto> searchTasksByKeyword(List<String> keywords) {
         String username = getCurrentUsername();
-        log.info("User {} searching tasks with keyword: {}", username, keyword);
+        log.info("User {} searching tasks with keywords: {}", username, keywords);
         AppUser user = getCurrentUser();
-        List<Task> tasks = taskRepository.findByAssignedToAndKeywordsIn(user,keyword);
+
+        List<Task> tasks = taskRepository.findByAssignedToAndKeywordsIn(user, keywords);
         return tasks.stream()
                 .map(taskMapper::toTaskDto)
                 .toList();
     }
-
 
     @Override
     public TaskDto updateTask(Long taskId, UpdateTaskRequest updateTaskRequest) {
         AppUser user = getCurrentUser();
         Task task = findTaskById(taskId);
         Admin admin = task.getAssignedBy();
-        notificationService.sendNotificationToUser(user,NotificationType.TASK_UPDATED,"Task with id : "+taskId+ " Updated ");
-        notificationService.sendNotificationToAdmin(admin,NotificationType.TASK_UPDATED,"Task with id : "+taskId+ " Updated");
-        return super.updateTask(taskId, updateTaskRequest);
+        TaskDto updatedTask = super.updateTask(taskId, updateTaskRequest);
+        notificationService.sendNotificationToUser(user, NotificationType.TASK_UPDATED,
+                "Task '" + task.getTitle() + "' (ID: " + taskId + ") updated successfully");
+        if (admin != null) {
+            notificationService.sendNotificationToAdmin(admin, NotificationType.TASK_UPDATED,
+                    "Task '" + task.getTitle() + "' (ID: " + taskId + ") updated by user " + user.getUsername());
+        }
+        return updatedTask;
     }
 
     @Override
     public String deleteTask(Long taskId) {
         AppUser user = getCurrentUser();
-        notificationService.sendNotificationToUser(user,NotificationType.TASK_DELETED,"Task with id : "+taskId+ " Deleted Successfully");
-        return super.deleteTask(taskId);
-
+        Task task = findTaskById(taskId);
+        Admin admin = task.getAssignedBy();
+        String result = super.deleteTask(taskId);
+        notificationService.sendNotificationToUser(user, NotificationType.TASK_DELETED,
+                "Task '" + task.getTitle() + "' (ID: " + taskId + ") deleted successfully");
+        if (admin != null) {
+            notificationService.sendNotificationToAdmin(admin, NotificationType.TASK_DELETED,
+                    "Task '" + task.getTitle() + "' (ID: " + taskId + ") deleted by user " + user.getUsername());
+        }
+        return result;
     }
 
     @Override
@@ -181,6 +211,7 @@ public class UserTaskService extends BaseTaskService {
         AppUser user = getCurrentUser();
         return taskRepository.findByAssignedToAndDueDateBetween(user, start, end);
     }
+
     @Override
     protected void checkUpdatePermission(Task task, String username) {
         if (!task.getAssignedTo().getUsername().equals(username)) {

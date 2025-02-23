@@ -2,6 +2,7 @@ package com.serhat.taskFlow.controller;
 
 import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
+import com.serhat.taskFlow.dto.objects.TaskStatsDto;
 import com.serhat.taskFlow.dto.requests.AdminDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
 import com.serhat.taskFlow.dto.requests.UserTaskRequest;
@@ -21,6 +22,7 @@ public class UserTaskController {
 
     private final UserTaskService userTaskService;
 
+    /*
     @PostMapping("/createYourTask")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<TaskDto> createUserTask(@RequestBody UserTaskRequest userTaskRequest) {
@@ -28,6 +30,8 @@ public class UserTaskController {
         return ResponseEntity.ok(createdTask);
     }
 
+
+     */
 
     @GetMapping("/myAdmin")
     @PreAuthorize("hasRole('CUSTOMER')")
@@ -42,15 +46,29 @@ public class UserTaskController {
         return ResponseEntity.ok(userTaskService.searchTasksByKeyword(keyword));
     }
 
+    /*
     @GetMapping("/ICreated")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<List<TaskDto>> getTasksICreated() {
         List<TaskDto> tasks = userTaskService.tasksICreated();
         return ResponseEntity.ok(tasks);
     }
+     */
+
+    @GetMapping("/unDoneTasks")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<List<TaskDto>> getUndoneTasks() {
+        List<TaskDto> tasks = userTaskService.getActiveTasks();
+        return ResponseEntity.ok(tasks);
+    }
+    @GetMapping("/taskStats")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<TaskStatsDto> getTaskStats() {
+        return ResponseEntity.ok(userTaskService.getTaskStats());
+    }
 
     @GetMapping("/myNotifications")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<List<NotificationDto>> getNotifications() {
         List<NotificationDto> notifications = userTaskService.userNotifications();
         return ResponseEntity.ok(notifications);

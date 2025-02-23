@@ -26,11 +26,11 @@ import java.util.List;
 public abstract class BaseTaskService {
 
     protected final TaskRepository taskRepository;
-    private final TaskMapper taskMapper;
+    protected final TaskMapper taskMapper;
     protected final DateRangeParser dateRangeParser;
     protected final UserInterface userInterface;
-    private final AdminInterface adminInterface;
-
+    protected final AdminInterface adminInterface;
+    protected final NotificationService notificationService;
 
     protected String getCurrentUsername() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -47,7 +47,7 @@ public abstract class BaseTaskService {
         return userInterface.findByUsername(username);
     }
 
-    protected Admin getCurrentAdmin(){
+    protected Admin getCurrentAdmin() {
         String username = getCurrentUsername();
         return adminInterface.findByUsername(username);
     }
@@ -56,11 +56,10 @@ public abstract class BaseTaskService {
         String username = getCurrentUsername();
         log.info("User {} fetching tasks by date range: startDate={}, endDate={}", username, startDate, endDate);
 
-        LocalDateTime start = dateRangeParser.parseStartDate(startDate).toLocalDate().atStartOfDay();
-        LocalDateTime end = dateRangeParser.parseEndDate(endDate).toLocalDate().atTime(23, 59);
+        LocalDateTime start = dateRangeParser.parseStartDate(startDate);
+        LocalDateTime end = dateRangeParser.parseEndDate(endDate);
 
         List<Task> tasksInRange = fetchTasksByDateRange(start, end);
-
         return tasksInRange.stream()
                 .map(taskMapper::toTaskDto)
                 .toList();
@@ -82,7 +81,6 @@ public abstract class BaseTaskService {
 
         Task updated = taskRepository.save(existingTask);
         log.info("Task with ID: {} updated successfully by user: {}", taskId, username);
-
         return taskMapper.toTaskDto(updated);
     }
 
@@ -99,10 +97,9 @@ public abstract class BaseTaskService {
         return "Task with ID: " + taskId + " deleted successfully";
     }
 
+    protected abstract List<Task> fetchTasksByDateRange(LocalDateTime start, LocalDateTime end);
 
     protected abstract void checkUpdatePermission(Task task, String username);
 
     protected abstract void checkDeletePermission(Task task, String username);
-
-    protected abstract List<Task> fetchTasksByDateRange(LocalDateTime start, LocalDateTime end);
 }
