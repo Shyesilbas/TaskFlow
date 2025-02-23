@@ -6,7 +6,10 @@ import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.objects.UserTaskStatsDto;
 import com.serhat.taskFlow.dto.requests.AdminMultipleTaskRequest;
 import com.serhat.taskFlow.dto.requests.AdminTaskRequest;
+import com.serhat.taskFlow.dto.requests.TaskChangeRequestDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
+import com.serhat.taskFlow.dto.responses.RespondToDateChangeRequest;
+import com.serhat.taskFlow.entity.enums.TaskStatus;
 import com.serhat.taskFlow.service.AdminTaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -59,8 +62,8 @@ public class AdminTaskController {
 
     @GetMapping("/getTasksAssignedToUser")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TaskDto>> getTasksAssignedToUser(@RequestParam Long userId) {
-        List<TaskDto> task = adminTaskService.getTasksAssignedToUser(userId);
+    public ResponseEntity<List<TaskDto>> getTasksIAssignedToUser(@RequestParam Long userId) {
+        List<TaskDto> task = adminTaskService.getTasksIAssignedToUser(userId);
         return ResponseEntity.ok(task);
     }
 
@@ -109,4 +112,23 @@ public class AdminTaskController {
         return ResponseEntity.ok(tasks);
     }
 
+    @GetMapping("/tasksByStatus")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<TaskDto>> getTasksByStatus(@RequestParam TaskStatus taskStatus){
+        return ResponseEntity.ok(adminTaskService.getTasksByStatus(taskStatus));
+    }
+
+    @PostMapping("/respond-to-due-date-change")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> respondToDueDateChangeRequest(@RequestBody RespondToDateChangeRequest respondToDateChangeRequest) {
+        adminTaskService.respondToDueDateChangeRequest(respondToDateChangeRequest);
+        return ResponseEntity.ok("Due date change request processed successfully");
+    }
+
+    @GetMapping("/pending-due-date-changes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<TaskChangeRequestDto>> getPendingDueDateChangeRequests() {
+        List<TaskChangeRequestDto> requests = adminTaskService.getPendingDueDateChangeRequests();
+        return ResponseEntity.ok(requests);
+    }
 }

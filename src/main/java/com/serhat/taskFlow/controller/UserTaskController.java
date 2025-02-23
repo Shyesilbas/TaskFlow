@@ -3,10 +3,7 @@ package com.serhat.taskFlow.controller;
 import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.objects.TaskStatsDto;
-import com.serhat.taskFlow.dto.requests.AddUserCommentRequest;
-import com.serhat.taskFlow.dto.requests.AdminDto;
-import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
-import com.serhat.taskFlow.dto.requests.UserTaskRequest;
+import com.serhat.taskFlow.dto.requests.*;
 import com.serhat.taskFlow.entity.enums.TaskPriority;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
 import com.serhat.taskFlow.service.UserTaskService;
@@ -100,6 +97,20 @@ public class UserTaskController {
     public ResponseEntity<List<TaskDto>> getTasksByPriority(@RequestParam TaskPriority taskPriority) {
         List<TaskDto> tasks = userTaskService.getTasksByPriority(taskPriority);
         return ResponseEntity.ok(tasks);
+    }
+
+    @PostMapping("/request-due-date-change")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<String> requestDueDateChange(@RequestBody UpdateDueDateRequest updateDueDateRequest) {
+        userTaskService.requestDueDateChange(updateDueDateRequest);
+        return ResponseEntity.ok("Due date change request submitted successfully");
+    }
+
+    @GetMapping("/my-due-date-change-requests")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<List<TaskChangeRequestDto>> getMyDueDateChangeRequests() {
+        List<TaskChangeRequestDto> requests = userTaskService.getMyDueDateChangeRequests();
+        return ResponseEntity.ok(requests);
     }
 
     @GetMapping("/upcomingTasks")

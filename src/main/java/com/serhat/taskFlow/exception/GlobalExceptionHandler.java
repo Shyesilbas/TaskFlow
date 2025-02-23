@@ -173,6 +173,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(NoPermissionException.class)
+    public ResponseEntity<ErrorResponse> handleNoPermissionException(NoPermissionException e){
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                e.getMessage(),
+                "No permission!",
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse,HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(UserAlreadyAssignedToAdminException.class)
     public ResponseEntity<ErrorResponse> handleUserAlreadyAssignedToAdminException(UserAlreadyAssignedToAdminException e){
 

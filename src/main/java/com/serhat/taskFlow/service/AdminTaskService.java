@@ -6,18 +6,22 @@ import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.objects.UserTaskStatsDto;
 import com.serhat.taskFlow.dto.requests.AdminMultipleTaskRequest;
 import com.serhat.taskFlow.dto.requests.AdminTaskRequest;
+import com.serhat.taskFlow.dto.requests.TaskChangeRequestDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
-import com.serhat.taskFlow.entity.Admin;
-import com.serhat.taskFlow.entity.AppUser;
-import com.serhat.taskFlow.entity.Notification;
-import com.serhat.taskFlow.entity.Task;
+import com.serhat.taskFlow.dto.responses.RespondToDateChangeRequest;
+import com.serhat.taskFlow.entity.*;
 import com.serhat.taskFlow.entity.enums.NotificationType;
+import com.serhat.taskFlow.entity.enums.RequestStatus;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
+import com.serhat.taskFlow.exception.NoPermissionException;
 import com.serhat.taskFlow.exception.TaskCannotBeAssignedException;
+import com.serhat.taskFlow.exception.TaskCannotBeUpdatedException;
+import com.serhat.taskFlow.exception.TaskNotFoundException;
 import com.serhat.taskFlow.interfaces.AdminInterface;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
 import com.serhat.taskFlow.interfaces.UserInterface;
 import com.serhat.taskFlow.mapper.TaskMapper;
+import com.serhat.taskFlow.repository.TaskChangeRequestRepository;
 import com.serhat.taskFlow.repository.TaskRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -32,9 +36,12 @@ import java.util.List;
 @Slf4j
 public class AdminTaskService extends BaseTaskService {
 
+    private final TaskChangeRequestRepository taskChangeRequestRepository;
     public AdminTaskService(TaskRepository taskRepository, TaskMapper taskMapper, DateRangeParser dateRangeParser,
-                            UserInterface userInterface, AdminInterface adminInterface, NotificationService notificationService) {
+                            UserInterface userInterface, AdminInterface adminInterface, NotificationService notificationService ,
+                            TaskChangeRequestRepository taskChangeRequestRepository) {
         super(taskRepository, taskMapper, dateRangeParser, userInterface, adminInterface, notificationService);
+        this.taskChangeRequestRepository=taskChangeRequestRepository;
     }
 
     @Transactional
@@ -63,21 +70,113 @@ public class AdminTaskService extends BaseTaskService {
     public TaskDto getTaskById(Long taskId) {
         String username = getCurrentUsername();
         log.info("Admin fetching specific task by id {} for user: {}", taskId, username);
-
+        Admin admin = getCurrentAdmin();
         Task task = findTaskById(taskId);
+        if(!admin.equals(task.getAssignedBy())){
+            throw new NoPermissionException("You can only display your tasks!");
+        }
+
         log.debug("Admin fetched the task : task Id {}", taskId);
         return taskMapper.toTaskDto(task);
     }
 
-    public List<TaskDto> getTasksAssignedToUser(Long userId) {
+    public List<TaskDto> getTasksByStatus(TaskStatus status) {
         String username = getCurrentUsername();
-        log.info("Admin {} fetching specific tasks assigned to user for user: {}", username, userId);
+        log.info("Admin {} fetching tasks by status: {}", username, status);
+        Admin admin = getCurrentAdmin();
 
+        List<Task> tasks = taskRepository.findByAssignedByAndStatus(admin, status);
+        if(tasks.isEmpty()){
+            return Collections.emptyList();
+        }
+        return tasks.stream()
+                .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
+    public List<TaskDto> getTasksIAssignedToUser(Long userId) {
+        String username = getCurrentUsername();
+        log.info("Admin {} fetching tasks they assigned to user with ID: {}", username, userId);
+
+        Admin admin = getCurrentAdmin();
         AppUser appUser = userInterface.findById(userId);
-        List<Task> userTasks = appUser.getTasks();
 
+        if (appUser.getAdmin() == null || !appUser.getAdmin().getAdminId().equals(admin.getAdminId())) {
+            throw new NoPermissionException("You can only view tasks that you have assigned to this user.");
+        }
+
+        List<Task> userTasks = taskRepository.findByAssignedToAndAssignedBy(appUser, admin);
+        if(userTasks.isEmpty()){
+            return Collections.emptyList();
+        }
         return userTasks.stream()
                 .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
+    @Transactional
+    public void respondToDueDateChangeRequest(RespondToDateChangeRequest respondToDateChangeRequest ) {
+        String username = getCurrentUsername();
+        Long requestId = respondToDateChangeRequest.requestId();
+        boolean approved = respondToDateChangeRequest.approved();
+        String adminMessage = respondToDateChangeRequest.adminMessage();
+        log.info("Admin {} responding to due date change request {}: approved={}", username, requestId, approved);
+        Admin admin = getCurrentAdmin();
+
+        TaskChangeRequest request = taskChangeRequestRepository.findById(requestId)
+                .orElseThrow(() -> new TaskNotFoundException("Change request with ID " + requestId + " not found"));
+
+        Task task = request.getTask();
+        if (!task.getAssignedBy().getAdminId().equals(admin.getAdminId())) {
+            throw new AccessDeniedException("You can only respond to requests for tasks you assigned");
+        }
+
+        if (!request.getStatus().equals(RequestStatus.PENDING)) {
+            throw new TaskCannotBeUpdatedException("This request has already been processed");
+        }
+
+        if (approved) {
+            task.setDueDate(request.getRequestedDueDate());
+            request.setStatus(RequestStatus.APPROVED);
+            notificationService.sendNotificationToUser(task.getAssignedTo(), NotificationType.TASK_CHANGE_APPROVED,
+                    "Your request to change due date for task '" + task.getTitle() + "' (ID: " + task.getTaskId() + ") to " +
+                            request.getRequestedDueDate() + " has been approved");
+        } else {
+            request.setStatus(RequestStatus.REJECTED);
+            request.setAdminMessage(adminMessage);
+            notificationService.sendNotificationToUser(task.getAssignedTo(), NotificationType.TASK_CHANGE_REJECTED,
+                    "Your request to change due date for task '" + task.getTitle() + "' (ID: " + task.getTaskId() + ") was rejected. Reason: " + adminMessage);
+        }
+
+        taskRepository.save(task);
+        taskChangeRequestRepository.save(request);
+
+        notificationService.sendNotificationToAdmin(admin, NotificationType.TASK_CHANGE_REQUEST_RESPONDED,
+                "Responded to due date change request for task '" + task.getTitle() + "' (ID: " + task.getTaskId() + ") with status: " + request.getStatus());
+    }
+
+    public List<TaskChangeRequestDto> getPendingDueDateChangeRequests() {
+        String username = getCurrentUsername();
+        log.info("Admin {} fetching pending due date change requests", username);
+        Admin admin = getCurrentAdmin();
+
+        List<Task> adminTasks = taskRepository.findByAssignedBy(admin);
+        List<Long> taskIds = adminTasks.stream().map(Task::getTaskId).toList();
+
+
+
+        List<TaskChangeRequest> requests = taskChangeRequestRepository.findByTask_TaskIdInAndStatus(taskIds, RequestStatus.PENDING);
+        return requests.stream()
+                .map(request -> new TaskChangeRequestDto(
+                        request.getId(),
+                        request.getTask().getTaskId(),
+                        request.getTask().getTitle(),
+                        request.getRequestedDueDate(),
+                        request.getStatus(),
+                        request.getAdminMessage(),
+                        request.getUserMessage(),
+                        request.getCreatedAt(),
+                        request.getUpdatedAt()))
                 .toList();
     }
 
@@ -87,6 +186,10 @@ public class AdminTaskService extends BaseTaskService {
 
         Admin admin = getCurrentAdmin();
         List<Task> adminTasks = admin.getTasks();
+
+        if(adminTasks.isEmpty()){
+            return Collections.emptyList();
+        }
 
         return adminTasks.stream()
                 .map(taskMapper::toTaskDto)
@@ -99,6 +202,9 @@ public class AdminTaskService extends BaseTaskService {
 
         Admin admin = getCurrentAdmin();
         List<AppUser> myUsers = admin.getAppUser();
+        if(myUsers.isEmpty()){
+            return Collections.emptyList();
+        }
 
         return myUsers.stream()
                 .map(appUser -> new AppUserDto(appUser.getUsername(), appUser.getEmail(), appUser.getPhone()))
@@ -129,6 +235,9 @@ public class AdminTaskService extends BaseTaskService {
         Admin admin = getCurrentAdmin();
 
         List<Task> tasks = taskRepository.findByAssignedByAndKeywordsIn(admin, keywords);
+        if(tasks.isEmpty()){
+            return Collections.emptyList();
+        }
         return tasks.stream()
                 .map(taskMapper::toTaskDto)
                 .toList();
@@ -171,7 +280,9 @@ public class AdminTaskService extends BaseTaskService {
         log.info("Admin {} fetching user task stats", username);
         Admin admin = getCurrentAdmin();
         List<AppUser> users = admin.getAppUser();
-
+        if(users.isEmpty()){
+            return Collections.emptyList();
+        }
         return users.stream()
                 .map(user -> {
                     long todo = taskRepository.countByAssignedToAndStatus(user, TaskStatus.TODO);

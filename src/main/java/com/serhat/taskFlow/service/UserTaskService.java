@@ -3,14 +3,8 @@ package com.serhat.taskFlow.service;
 import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.objects.TaskStatsDto;
-import com.serhat.taskFlow.dto.requests.AddUserCommentRequest;
-import com.serhat.taskFlow.dto.requests.AdminDto;
-import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
-import com.serhat.taskFlow.dto.requests.UserTaskRequest;
-import com.serhat.taskFlow.entity.Admin;
-import com.serhat.taskFlow.entity.AppUser;
-import com.serhat.taskFlow.entity.Notification;
-import com.serhat.taskFlow.entity.Task;
+import com.serhat.taskFlow.dto.requests.*;
+import com.serhat.taskFlow.entity.*;
 import com.serhat.taskFlow.entity.enums.NotificationType;
 import com.serhat.taskFlow.entity.enums.TaskPriority;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
@@ -20,7 +14,9 @@ import com.serhat.taskFlow.interfaces.AdminInterface;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
 import com.serhat.taskFlow.interfaces.UserInterface;
 import com.serhat.taskFlow.mapper.TaskMapper;
+import com.serhat.taskFlow.repository.TaskChangeRequestRepository;
 import com.serhat.taskFlow.repository.TaskRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -33,10 +29,12 @@ import java.util.List;
 @Service
 @Slf4j
 public class UserTaskService extends BaseTaskService {
+    private final TaskChangeRequestRepository taskChangeRequestRepository;
 
     public UserTaskService(TaskRepository taskRepository, TaskMapper taskMapper, DateRangeParser dateRangeParser,
-                           UserInterface userInterface, AdminInterface adminInterface, NotificationService notificationService) {
+                           UserInterface userInterface, AdminInterface adminInterface , NotificationService notificationService, TaskChangeRequestRepository taskChangeRequestRepository) {
         super(taskRepository, taskMapper, dateRangeParser, userInterface, adminInterface, notificationService);
+        this.taskChangeRequestRepository = taskChangeRequestRepository;
     }
 
     /*
@@ -160,6 +158,60 @@ public class UserTaskService extends BaseTaskService {
         List<Task> activeTasks = taskRepository.findByAssignedToAndStatusNot(user, TaskStatus.DONE);
         return activeTasks.stream()
                 .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
+    @Transactional
+    public void requestDueDateChange(UpdateDueDateRequest updateDueDateRequest) {
+        String username = getCurrentUsername();
+        Long taskId = updateDueDateRequest.taskId();
+        String newDueDate = updateDueDateRequest.newDate();
+        String message = updateDueDateRequest.message();
+        log.info("User {} requesting due date change for task {} to {}", username, taskId, newDueDate);
+        AppUser user = getCurrentUser();
+        Task task = findTaskById(taskId);
+
+        checkUpdatePermission(task, username);
+        if (task.getStatus() == TaskStatus.DONE) {
+            throw new TaskCannotBeUpdatedException("Cannot request due date change for a completed task");
+        }
+
+        LocalDateTime parsedDueDate = dateRangeParser.parseStartDate(newDueDate);
+
+        TaskChangeRequest request = TaskChangeRequest.builder()
+                .task(task)
+                .user(user)
+                .requestedDueDate(parsedDueDate)
+                .userMessage(message)
+                .build();
+
+        taskChangeRequestRepository.save(request);
+
+        notificationService.sendNotificationToUser(user, NotificationType.TASK_CHANGE_REQUEST,
+                "Due date change requested for task '" + task.getTitle() + "' (ID: " + taskId + ") to " + newDueDate);
+        if (task.getAssignedBy() != null) {
+            notificationService.sendNotificationToAdmin(task.getAssignedBy(), NotificationType.TASK_CHANGE_REQUEST,
+                    username + " requested due date change for task '" + task.getTitle() + "' (ID: " + taskId + ") to " + newDueDate);
+        }
+    }
+
+    public List<TaskChangeRequestDto> getMyDueDateChangeRequests() {
+        String username = getCurrentUsername();
+        log.info("User {} fetching their due date change requests", username);
+        AppUser user = getCurrentUser();
+
+        List<TaskChangeRequest> requests = taskChangeRequestRepository.findByUser(user);
+        return requests.stream()
+                .map(request -> new TaskChangeRequestDto(
+                        request.getId(),
+                        request.getTask().getTaskId(),
+                        request.getTask().getTitle(),
+                        request.getRequestedDueDate(),
+                        request.getStatus(),
+                        request.getAdminMessage(),
+                        request.getUserMessage(),
+                        request.getCreatedAt(),
+                        request.getUpdatedAt()))
                 .toList();
     }
 

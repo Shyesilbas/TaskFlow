@@ -40,6 +40,9 @@ public class AppUser implements UserDetails {
     @OneToMany(mappedBy = "recipientUser",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
     private List<Notification> notifications;
 
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<TaskChangeRequest> taskChangeRequests;
+
     @ManyToOne
     @JoinColumn(name = "admin_id")
     private Admin admin;

@@ -17,11 +17,8 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByAssignedTo(AppUser assignedTo);
-    List<Task> findByAssignedToAndAssignedByIsNull(AppUser assignedTo);
-
     List<Task> findByAssignedByAndDueDateBetween(Admin admin, LocalDateTime start, LocalDateTime end);
     List<Task> findByAssignedToAndDueDateBetween(AppUser appUser, LocalDateTime start, LocalDateTime end);
-
 
     List<Task> findByAssignedToAndStatus(AppUser user, TaskStatus status);
 
@@ -35,4 +32,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     long countByAssignedToAndDueDateBefore(AppUser user, LocalDateTime now);
 
     List<Task> findByAssignedToAndTaskPriority(AppUser user, TaskPriority priority);
+
+    List<Task> findByAssignedByAndStatus(Admin admin, TaskStatus status);
+
+    List<Task> findByAssignedToAndAssignedBy(AppUser appUser, Admin admin);
+
+    List<Task> findByAssignedBy(Admin admin);
 }
