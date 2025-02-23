@@ -3,6 +3,7 @@ package com.serhat.taskFlow.repository;
 import com.serhat.taskFlow.entity.Admin;
 import com.serhat.taskFlow.entity.AppUser;
 import com.serhat.taskFlow.entity.Task;
+import com.serhat.taskFlow.entity.enums.TaskPriority;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -32,4 +33,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     long countByAssignedToAndStatus(AppUser user, TaskStatus taskStatus);
 
     long countByAssignedToAndDueDateBefore(AppUser user, LocalDateTime now);
+
+    List<Task> findByAssignedToAndTaskPriority(AppUser user, TaskPriority priority);
 }

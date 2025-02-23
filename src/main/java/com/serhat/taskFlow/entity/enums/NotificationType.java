@@ -6,5 +6,7 @@ public enum NotificationType {
     ADMIN_ASSIGNED,
     TASK_UPDATED,
     TASK_DELETED,
+    TASK_COMPLETED,
+    TASK_IN_PROGRESS,
     GENERAL
 }

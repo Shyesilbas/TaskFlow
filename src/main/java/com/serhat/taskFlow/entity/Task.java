@@ -1,6 +1,7 @@
 package com.serhat.taskFlow.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.serhat.taskFlow.entity.enums.TaskPriority;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,12 @@ public class Task {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    private TaskPriority taskPriority;
+
+    private String adminComment;
+    private String userComment;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "task_keywords", joinColumns = @JoinColumn(name = "task_id"))

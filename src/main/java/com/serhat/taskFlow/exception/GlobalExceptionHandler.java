@@ -161,6 +161,17 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
     }
+    @ExceptionHandler(TaskCannotBeUpdatedException.class)
+    public ResponseEntity<ErrorResponse> handleTaskCannotBeUpdatedException(TaskCannotBeUpdatedException e){
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                e.getMessage(),
+                "Task cannot be updated!",
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(UserAlreadyAssignedToAdminException.class)
     public ResponseEntity<ErrorResponse> handleUserAlreadyAssignedToAdminException(UserAlreadyAssignedToAdminException e){

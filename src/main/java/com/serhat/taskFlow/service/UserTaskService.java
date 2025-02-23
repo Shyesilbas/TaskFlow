@@ -3,6 +3,7 @@ package com.serhat.taskFlow.service;
 import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.objects.TaskStatsDto;
+import com.serhat.taskFlow.dto.requests.AddUserCommentRequest;
 import com.serhat.taskFlow.dto.requests.AdminDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
 import com.serhat.taskFlow.dto.requests.UserTaskRequest;
@@ -11,7 +12,9 @@ import com.serhat.taskFlow.entity.AppUser;
 import com.serhat.taskFlow.entity.Notification;
 import com.serhat.taskFlow.entity.Task;
 import com.serhat.taskFlow.entity.enums.NotificationType;
+import com.serhat.taskFlow.entity.enums.TaskPriority;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
+import com.serhat.taskFlow.exception.TaskCannotBeUpdatedException;
 import com.serhat.taskFlow.exception.TaskNotFoundException;
 import com.serhat.taskFlow.interfaces.AdminInterface;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
@@ -66,6 +69,16 @@ public class UserTaskService extends BaseTaskService {
     }
     */
 
+    public List<TaskDto> getTasksByPriority(TaskPriority priority) {
+        String username = getCurrentUsername();
+        log.info("User {} fetching tasks by priority: {}", username, priority);
+        AppUser user = getCurrentUser();
+        List<Task> tasks = taskRepository.findByAssignedToAndTaskPriority(user, priority);
+        return tasks.stream()
+                .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
     public List<TaskDto> tasksAssignedToMe() {
         try {
             String username = getCurrentUsername();
@@ -74,6 +87,10 @@ public class UserTaskService extends BaseTaskService {
             AppUser user = getCurrentUser();
             List<Task> tasksAssignedToMe = taskRepository.findByAssignedTo(user);
             log.debug("User fetched {} tasks assigned to them", tasksAssignedToMe.size());
+
+            if(tasksAssignedToMe.isEmpty()){
+              return Collections.emptyList();
+            }
 
             return tasksAssignedToMe.stream()
                     .filter(task -> task.getAssignedBy() != null)
@@ -93,6 +110,21 @@ public class UserTaskService extends BaseTaskService {
         return tasksByStatus.stream()
                 .map(taskMapper::toTaskDto)
                 .toList();
+    }
+
+    @Transactional
+    public TaskDto addCommentToTask(AddUserCommentRequest userCommentRequest) {
+        String username = getCurrentUsername();
+        Long taskId = userCommentRequest.taskId();
+        String comment = userCommentRequest.comment();
+        log.info("User {} adding comment to task {}", username, taskId);
+        Task task = findTaskById(taskId);
+
+        checkUpdatePermission(task, username);
+        task.setUserComment(comment);
+        Task updatedTask = taskRepository.save(task);
+        log.info(username +" added the comment : "+comment + " to task with id : "+taskId);
+        return taskMapper.toTaskDto(updatedTask);
     }
 
     public AdminDto myAdmin() {
@@ -176,20 +208,35 @@ public class UserTaskService extends BaseTaskService {
                 .toList();
     }
 
-    @Override
-    public TaskDto updateTask(Long taskId, UpdateTaskRequest updateTaskRequest) {
+    @Transactional
+    public TaskDto UpdateTaskStatus(Long taskId) {
+        String username = getCurrentUsername();
+        log.info("User {} marking task {} as completed", username, taskId);
         AppUser user = getCurrentUser();
         Task task = findTaskById(taskId);
-        Admin admin = task.getAssignedBy();
-        TaskDto updatedTask = super.updateTask(taskId, updateTaskRequest);
-        notificationService.sendNotificationToUser(user, NotificationType.TASK_UPDATED,
-                "Task '" + task.getTitle() + "' (ID: " + taskId + ") updated successfully");
-        if (admin != null) {
-            notificationService.sendNotificationToAdmin(admin, NotificationType.TASK_UPDATED,
-                    "Task '" + task.getTitle() + "' (ID: " + taskId + ") updated by user " + user.getUsername());
+
+        if(task.getStatus() == TaskStatus.TODO){
+            task.setStatus(TaskStatus.IN_PROGRESS);
         }
-        return updatedTask;
+        if(task.getStatus() == TaskStatus.IN_PROGRESS){
+            task.setStatus(TaskStatus.DONE);
+        }
+        if(task.getStatus() == TaskStatus.DONE){
+            throw new TaskCannotBeUpdatedException("Task is done. Cannot be updated further");
+        }
+
+        checkUpdatePermission(task, username);
+        Task updatedTask = taskRepository.save(task);
+
+        notificationService.sendNotificationToUser(user, NotificationType.TASK_COMPLETED,
+                "Task '" + task.getTitle() + "' (ID: " + taskId + ") marked as "+task.getStatus());
+        if (task.getAssignedBy() != null) {
+            notificationService.sendNotificationToAdmin(task.getAssignedBy(), NotificationType.TASK_COMPLETED,
+                    "Task '" + task.getTitle() + "' (ID: " + taskId + ") marked as "+task.getStatus()+ " by " + username);
+        }
+        return taskMapper.toTaskDto(updatedTask);
     }
+
 
     @Override
     public String deleteTask(Long taskId) {

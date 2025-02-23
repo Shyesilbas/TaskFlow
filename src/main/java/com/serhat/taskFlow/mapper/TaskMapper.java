@@ -30,6 +30,9 @@ public class TaskMapper {
                 .createdAt(task.getCreatedAt())
                 .dueDate(task.getDueDate())
                 .keywords(task.getKeywords())
+                .taskPriority(task.getTaskPriority())
+                .adminComment(task.getAdminComment())
+                .userComment(task.getUserComment())
                 .build();
     }
 
@@ -56,6 +59,9 @@ public class TaskMapper {
                 .assignedBy(admin)
                 .assignedTo(currentUser)
                 .keywords(adminTaskRequest.keywords())
+                .taskPriority(adminTaskRequest.taskPriority())
+                .adminComment(adminTaskRequest.adminComment())
+                .userComment(null)
                 .build();
     }
 
@@ -69,6 +75,9 @@ public class TaskMapper {
                 .assignedBy(admin)
                 .assignedTo(currentUser)
                 .keywords(multipleTaskRequest.keywords())
+                .taskPriority(multipleTaskRequest.taskPriority())
+                .adminComment(multipleTaskRequest.adminComment())
+                .userComment(null)
                 .build();
     }
 

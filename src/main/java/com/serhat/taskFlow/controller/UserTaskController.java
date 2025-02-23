@@ -3,9 +3,11 @@ package com.serhat.taskFlow.controller;
 import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.objects.TaskStatsDto;
+import com.serhat.taskFlow.dto.requests.AddUserCommentRequest;
 import com.serhat.taskFlow.dto.requests.AdminDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
 import com.serhat.taskFlow.dto.requests.UserTaskRequest;
+import com.serhat.taskFlow.entity.enums.TaskPriority;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
 import com.serhat.taskFlow.service.UserTaskService;
 import lombok.RequiredArgsConstructor;
@@ -81,6 +83,25 @@ public class UserTaskController {
         return ResponseEntity.ok(tasks);
     }
 
+    @PutMapping("/addCommentToTask")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<TaskDto> addCommentToTask(@RequestBody AddUserCommentRequest userCommentRequest){
+        return ResponseEntity.ok(userTaskService.addCommentToTask(userCommentRequest));
+    }
+
+    @PutMapping("/update-taskStatus")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<TaskDto> updateTaskStatus(@RequestParam Long taskId){
+        return ResponseEntity.ok(userTaskService.UpdateTaskStatus(taskId));
+    }
+
+    @GetMapping("/tasksByPriority")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<List<TaskDto>> getTasksByPriority(@RequestParam TaskPriority taskPriority) {
+        List<TaskDto> tasks = userTaskService.getTasksByPriority(taskPriority);
+        return ResponseEntity.ok(tasks);
+    }
+
     @GetMapping("/upcomingTasks")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<?> getUpcomingTasks() {
@@ -91,15 +112,6 @@ public class UserTaskController {
         return ResponseEntity.ok(tasks);
     }
 
-    @PutMapping("/updateYourTask")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<TaskDto> updateUserTask(
-            @RequestParam("taskId") Long taskId,
-            @RequestBody UpdateTaskRequest updateTaskRequest
-    ) {
-        TaskDto task = userTaskService.updateTask(taskId, updateTaskRequest);
-        return ResponseEntity.ok(task);
-    }
     @GetMapping("/by-date-range")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<List<TaskDto>> getTasksByDateRange(
