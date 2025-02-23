@@ -28,10 +28,18 @@ public class UserTaskController {
         return ResponseEntity.ok(createdTask);
     }
 
+
     @GetMapping("/myAdmin")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<AdminDto> myAdmin(){
         return ResponseEntity.ok(userTaskService.myAdmin());
+    }
+
+
+    @GetMapping("/searchTask/by-keyword")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<List<TaskDto>> searchByKeyword(@RequestParam List<String> keyword){
+        return ResponseEntity.ok(userTaskService.searchTasksByKeyword(keyword));
     }
 
     @GetMapping("/ICreated")

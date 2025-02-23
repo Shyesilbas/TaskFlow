@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 public record TaskDto(
@@ -16,6 +17,7 @@ public record TaskDto(
         LocalDateTime createdAt,
         @JsonFormat(pattern = "dd-MM-yyyy HH:mm")
         LocalDateTime dueDate,
-        String assignedToUsername
+        String assignedToUsername,
+        List<String> keywords
 ) {
 }

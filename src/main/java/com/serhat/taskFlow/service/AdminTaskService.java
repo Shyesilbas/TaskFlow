@@ -31,10 +31,11 @@ public class AdminTaskService extends BaseTaskService {
     private final AdminInterface adminInterface;
     private final TaskMapper taskMapper;
     private final NotificationService notificationService;
-    public AdminTaskService(TaskRepository taskRepository,
+    public AdminTaskService(
+            AdminInterface adminInterface,TaskRepository taskRepository,
                             TaskMapper taskMapper,
-                            DateRangeParser dateRangeParser, UserInterface userInterface, AdminInterface adminInterface, NotificationService notificationService) {
-        super(taskRepository, dateRangeParser, userInterface, taskMapper,notificationService);
+                            DateRangeParser dateRangeParser, UserInterface userInterface,NotificationService notificationService) {
+        super(taskRepository, taskMapper, dateRangeParser, userInterface,adminInterface);
         this.adminInterface = adminInterface;
         this.taskMapper=taskMapper;
         this.notificationService=notificationService;
@@ -89,7 +90,7 @@ public class AdminTaskService extends BaseTaskService {
         String username = getCurrentUsername();
         log.info("Admin {} fetching tasks that they assigned to users", username);
 
-        Admin admin = adminInterface.findByUsername(username);
+        Admin admin = getCurrentAdmin();
 
         List<Task> adminTasks = admin.getTasks();
 
@@ -98,11 +99,21 @@ public class AdminTaskService extends BaseTaskService {
                 .toList();
     }
 
+    public List<TaskDto> searchTasksByKeyword(List<String> keyword) {
+        String username = getCurrentUsername();
+        log.info("User {} searching tasks with keyword: {}", username, keyword);
+        Admin admin = getCurrentAdmin();
+        List<Task> tasks = taskRepository.findByAssignedByAndKeywordsIn(admin,keyword);
+        return tasks.stream()
+                .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
     public List<AppUserDto> myUsers(){
         String username = getCurrentUsername();
         log.info("Admin {} fetching tasks that they assigned to users", username);
 
-        Admin admin = adminInterface.findByUsername(username);
+        Admin admin = getCurrentAdmin();
         List<AppUser> myUsers = admin.getAppUser();
 
         return myUsers.stream()
@@ -118,7 +129,7 @@ public class AdminTaskService extends BaseTaskService {
         String username = getCurrentUsername();
         log.info("Admin {} fetching tasks that they assigned to users", username);
 
-        Admin admin = adminInterface.findByUsername(username);
+        Admin admin = getCurrentAdmin();
         List<Notification> notifications = admin.getNotifications();
 
         return notifications.stream()
@@ -139,8 +150,11 @@ public class AdminTaskService extends BaseTaskService {
         String username = getCurrentUsername();
         log.info("Admin {} fetching tasks that they assigned to users", username);
 
-        Admin admin = adminInterface.findByUsername(username);
-        notificationService.sendNotificationToAdmin(admin,NotificationType.TASK_UPDATED,"Task with id : "+taskId+" updated successfully");
+        Task task = findTaskById(taskId);
+        Admin admin = getCurrentAdmin();
+        AppUser user = task.getAssignedTo();
+        notificationService.sendNotificationToAdmin(admin,NotificationType.TASK_UPDATED,"Task with id : "+taskId+" updated ");
+        notificationService.sendNotificationToUser(user,NotificationType.TASK_UPDATED,"Task with id : "+taskId+" updated by admin ");
         return super.updateTask(taskId, updateTaskRequest);
 
     }
@@ -148,25 +162,27 @@ public class AdminTaskService extends BaseTaskService {
     @Transactional
     public String deleteTask(Long taskId) {
         String username = getCurrentUsername();
-        Admin admin = adminInterface.findByUsername(username);
+        Admin admin = getCurrentAdmin();
         Task task = findTaskById(taskId);
+        AppUser user = task.getAssignedTo();
         log.info("Admin deleting task with ID: {} by user: {}", taskId, username);
 
         taskRepository.delete(task);
-        notificationService.sendNotificationToAdmin(admin,NotificationType.TASK_DELETED,"Task with id : "+taskId+" deleted successfully");
+        notificationService.sendNotificationToAdmin(admin,NotificationType.TASK_DELETED,"Task with id : "+taskId+" deleted");
+        notificationService.sendNotificationToUser(user,NotificationType.TASK_DELETED,"Task with id : "+taskId+" deleted by admin");
         log.info("Task with ID: {} deleted successfully by admin", taskId);
         return "Task with id : " + taskId + " deleted successfully";
     }
 
     @Override
     protected List<Task> fetchTasksByDateRange(LocalDateTime start, LocalDateTime end) {
-        Admin admin = adminInterface.findByUsername(getCurrentUsername());
+        Admin admin = getCurrentAdmin();
         return taskRepository.findByAssignedByAndDueDateBetween(admin, start, end);
     }
 
     @Override
     protected void checkUpdatePermission(Task task, String username) {
-        Admin admin = adminInterface.findByUsername(username);
+        Admin admin = getCurrentAdmin();
         if (!task.getAssignedBy().getAdminId().equals(admin.getAdminId())) {
             throw new AccessDeniedException("You can only update tasks you assigned");
         }
@@ -174,7 +190,7 @@ public class AdminTaskService extends BaseTaskService {
 
     @Override
     protected void checkDeletePermission(Task task, String username) {
-        Admin admin = adminInterface.findByUsername(username);
+        Admin admin = getCurrentAdmin();
         if (!task.getAssignedBy().getAdminId().equals(admin.getAdminId())) {
             log.warn("Admin {} attempted to delete task {} which they don't assigned", username, task.getTaskId());
             throw new AccessDeniedException("You can only delete your own tasks");

@@ -2,10 +2,12 @@ package com.serhat.taskFlow.service;
 
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
+import com.serhat.taskFlow.entity.Admin;
 import com.serhat.taskFlow.entity.AppUser;
 import com.serhat.taskFlow.entity.Task;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
 import com.serhat.taskFlow.exception.TaskNotFoundException;
+import com.serhat.taskFlow.interfaces.AdminInterface;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
 import com.serhat.taskFlow.interfaces.UserInterface;
 import com.serhat.taskFlow.mapper.TaskMapper;
@@ -24,10 +26,11 @@ import java.util.List;
 public abstract class BaseTaskService {
 
     protected final TaskRepository taskRepository;
+    private final TaskMapper taskMapper;
     protected final DateRangeParser dateRangeParser;
     protected final UserInterface userInterface;
-    private final TaskMapper taskMapper;
-    private final NotificationService notificationService;
+    private final AdminInterface adminInterface;
+
 
     protected String getCurrentUsername() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -42,6 +45,11 @@ public abstract class BaseTaskService {
     protected AppUser getCurrentUser() {
         String username = getCurrentUsername();
         return userInterface.findByUsername(username);
+    }
+
+    protected Admin getCurrentAdmin(){
+        String username = getCurrentUsername();
+        return adminInterface.findByUsername(username);
     }
 
     public List<TaskDto> getTasksByDateRange(String startDate, String endDate) {

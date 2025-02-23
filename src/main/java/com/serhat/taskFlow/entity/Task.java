@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -27,6 +28,11 @@ public class Task {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "task_keywords", joinColumns = @JoinColumn(name = "task_id"))
+    @Column(name = "keyword")
+    private List<String> keywords;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

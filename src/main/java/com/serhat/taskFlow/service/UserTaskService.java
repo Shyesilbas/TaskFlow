@@ -11,6 +11,7 @@ import com.serhat.taskFlow.entity.Notification;
 import com.serhat.taskFlow.entity.Task;
 import com.serhat.taskFlow.entity.enums.NotificationType;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
+import com.serhat.taskFlow.interfaces.AdminInterface;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
 import com.serhat.taskFlow.interfaces.UserInterface;
 import com.serhat.taskFlow.mapper.TaskMapper;
@@ -29,8 +30,13 @@ public class UserTaskService extends BaseTaskService {
 
     private final TaskMapper taskMapper;
     private final NotificationService notificationService;
-    public UserTaskService(TaskRepository taskRepository,TaskMapper taskMapper, DateRangeParser dateRangeParser, UserInterface userInterface, NotificationService notificationService) {
-        super(taskRepository, dateRangeParser, userInterface, taskMapper,notificationService);
+    public UserTaskService(TaskRepository taskRepository,
+                           TaskMapper taskMapper,
+                           DateRangeParser dateRangeParser,
+                           UserInterface userInterface,
+                           AdminInterface adminInterface,
+                           NotificationService notificationService) {
+        super(taskRepository, taskMapper, dateRangeParser, userInterface , adminInterface);
         this.taskMapper=taskMapper;
         this.notificationService=notificationService;
     }
@@ -141,10 +147,24 @@ public class UserTaskService extends BaseTaskService {
     }
 
 
+    public List<TaskDto> searchTasksByKeyword(List<String> keyword) {
+        String username = getCurrentUsername();
+        log.info("User {} searching tasks with keyword: {}", username, keyword);
+        AppUser user = getCurrentUser();
+        List<Task> tasks = taskRepository.findByAssignedToAndKeywordsIn(user,keyword);
+        return tasks.stream()
+                .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
+
     @Override
     public TaskDto updateTask(Long taskId, UpdateTaskRequest updateTaskRequest) {
         AppUser user = getCurrentUser();
-        notificationService.sendNotificationToUser(user,NotificationType.TASK_UPDATED,"Task with id : "+taskId+ " Updated Successfully");
+        Task task = findTaskById(taskId);
+        Admin admin = task.getAssignedBy();
+        notificationService.sendNotificationToUser(user,NotificationType.TASK_UPDATED,"Task with id : "+taskId+ " Updated ");
+        notificationService.sendNotificationToAdmin(admin,NotificationType.TASK_UPDATED,"Task with id : "+taskId+ " Updated");
         return super.updateTask(taskId, updateTaskRequest);
     }
 
@@ -155,7 +175,6 @@ public class UserTaskService extends BaseTaskService {
         return super.deleteTask(taskId);
 
     }
-
 
     @Override
     protected List<Task> fetchTasksByDateRange(LocalDateTime start, LocalDateTime end) {

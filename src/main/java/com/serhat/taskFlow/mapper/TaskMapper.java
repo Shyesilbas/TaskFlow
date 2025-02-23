@@ -26,6 +26,7 @@ public class TaskMapper {
                 .assignedToUsername(task.getAssignedTo().getUsername())
                 .createdAt(task.getCreatedAt())
                 .dueDate(task.getDueDate())
+                .keywords(task.getKeywords())
                 .build();
     }
 
@@ -38,6 +39,7 @@ public class TaskMapper {
                         dateRangeParser.parseStartDate(userTaskRequest.dueDate()) : null)
                 .assignedTo(currentUser)
                 .assignedBy(null)
+                .keywords(userTaskRequest.keywords())
                 .build();
     }
 
@@ -50,6 +52,7 @@ public class TaskMapper {
                         dateRangeParser.parseStartDate(adminTaskRequest.dueDate()) : null)
                 .assignedBy(admin)
                 .assignedTo(currentUser)
+                .keywords(adminTaskRequest.keywords())
                 .build();
     }
 
