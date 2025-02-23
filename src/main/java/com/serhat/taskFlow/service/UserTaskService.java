@@ -1,12 +1,15 @@
 package com.serhat.taskFlow.service;
 
+import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.requests.AdminDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
 import com.serhat.taskFlow.dto.requests.UserTaskRequest;
 import com.serhat.taskFlow.entity.Admin;
 import com.serhat.taskFlow.entity.AppUser;
+import com.serhat.taskFlow.entity.Notification;
 import com.serhat.taskFlow.entity.Task;
+import com.serhat.taskFlow.entity.enums.NotificationType;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
 import com.serhat.taskFlow.interfaces.UserInterface;
@@ -25,9 +28,11 @@ import java.util.List;
 public class UserTaskService extends BaseTaskService {
 
     private final TaskMapper taskMapper;
-    public UserTaskService(TaskRepository taskRepository, TaskMapper taskMapper, DateRangeParser dateRangeParser, UserInterface userInterface) {
-        super(taskRepository, dateRangeParser, userInterface, taskMapper);
+    private final NotificationService notificationService;
+    public UserTaskService(TaskRepository taskRepository,TaskMapper taskMapper, DateRangeParser dateRangeParser, UserInterface userInterface, NotificationService notificationService) {
+        super(taskRepository, dateRangeParser, userInterface, taskMapper,notificationService);
         this.taskMapper=taskMapper;
+        this.notificationService=notificationService;
     }
 
     @Transactional
@@ -40,6 +45,7 @@ public class UserTaskService extends BaseTaskService {
         Task task = taskMapper.toUserTaskEntity(taskRequest, currentUser);
 
         Task savedTask = taskRepository.save(task);
+        notificationService.sendNotificationToUser(currentUser, NotificationType.TASK_ASSIGNED,"You created Task with id "+task.getTaskId()+" successfully");
         log.info("Task created successfully with ID: {} for user: {}", savedTask.getTaskId(), username);
         return taskMapper.toTaskDto(savedTask);
     }
@@ -103,6 +109,21 @@ public class UserTaskService extends BaseTaskService {
         );
     }
 
+    public List<NotificationDto> userNotifications(){
+        String username = getCurrentUsername();
+        log.info("User {} looking for their admin", username);
+        AppUser user = getCurrentUser();
+
+        List<Notification> notifications = user.getNotifications();
+
+        return notifications.stream()
+                .map(notification -> new NotificationDto(
+                        notification.getMessage(),
+                        notification.getType(),
+                        notification.getCreatedAt()
+                ))
+                .toList();
+    }
     public List<TaskDto> fetchUpcomingTasks() {
         String username = getCurrentUsername();
         log.info("Fetching upcoming tasks for user: {}", username);
@@ -122,13 +143,19 @@ public class UserTaskService extends BaseTaskService {
 
     @Override
     public TaskDto updateTask(Long taskId, UpdateTaskRequest updateTaskRequest) {
+        AppUser user = getCurrentUser();
+        notificationService.sendNotificationToUser(user,NotificationType.TASK_UPDATED,"Task with id : "+taskId+ " Updated Successfully");
         return super.updateTask(taskId, updateTaskRequest);
     }
 
     @Override
     public String deleteTask(Long taskId) {
+        AppUser user = getCurrentUser();
+        notificationService.sendNotificationToUser(user,NotificationType.TASK_DELETED,"Task with id : "+taskId+ " Deleted Successfully");
         return super.deleteTask(taskId);
+
     }
+
 
     @Override
     protected List<Task> fetchTasksByDateRange(LocalDateTime start, LocalDateTime end) {

@@ -27,6 +27,7 @@ public abstract class BaseTaskService {
     protected final DateRangeParser dateRangeParser;
     protected final UserInterface userInterface;
     private final TaskMapper taskMapper;
+    private final NotificationService notificationService;
 
     protected String getCurrentUsername() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

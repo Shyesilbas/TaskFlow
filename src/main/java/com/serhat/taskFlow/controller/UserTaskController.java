@@ -1,5 +1,6 @@
 package com.serhat.taskFlow.controller;
 
+import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.requests.AdminDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
@@ -38,6 +39,13 @@ public class UserTaskController {
     public ResponseEntity<List<TaskDto>> getTasksICreated() {
         List<TaskDto> tasks = userTaskService.tasksICreated();
         return ResponseEntity.ok(tasks);
+    }
+
+    @GetMapping("/myNotifications")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<NotificationDto>> getNotifications() {
+        List<NotificationDto> notifications = userTaskService.userNotifications();
+        return ResponseEntity.ok(notifications);
     }
 
     @GetMapping("/assignedToMe")

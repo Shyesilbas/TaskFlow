@@ -1,6 +1,7 @@
 package com.serhat.taskFlow.controller;
 
 import com.serhat.taskFlow.dto.objects.AppUserDto;
+import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.requests.AdminTaskRequest;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
@@ -37,6 +38,13 @@ public class AdminTaskController {
     public ResponseEntity<List<AppUserDto>> getMyUsers() {
         List<AppUserDto> appUserDto = adminTaskService.myUsers();
         return ResponseEntity.ok(appUserDto);
+    }
+
+    @GetMapping("/myNotifications")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<NotificationDto>> getNotifications() {
+        List<NotificationDto> notifications = adminTaskService.adminNotifications();
+        return ResponseEntity.ok(notifications);
     }
 
 

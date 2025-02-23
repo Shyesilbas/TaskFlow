@@ -36,6 +36,9 @@ public class Manager implements UserDetails {
     @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL)
     private List<Admin> admins;
 
+    @OneToMany(mappedBy = "recipientManager",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<Notification> notifications;
+
     @PrePersist
     public void initUser(){
         this.role=Role.MANAGER;

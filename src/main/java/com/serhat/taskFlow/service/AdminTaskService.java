@@ -1,12 +1,15 @@
 package com.serhat.taskFlow.service;
 
 import com.serhat.taskFlow.dto.objects.AppUserDto;
+import com.serhat.taskFlow.dto.objects.NotificationDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.requests.AdminTaskRequest;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
 import com.serhat.taskFlow.entity.Admin;
 import com.serhat.taskFlow.entity.AppUser;
+import com.serhat.taskFlow.entity.Notification;
 import com.serhat.taskFlow.entity.Task;
+import com.serhat.taskFlow.entity.enums.NotificationType;
 import com.serhat.taskFlow.exception.TaskCannotBeAssignedException;
 import com.serhat.taskFlow.interfaces.AdminInterface;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
@@ -27,13 +30,14 @@ public class AdminTaskService extends BaseTaskService {
 
     private final AdminInterface adminInterface;
     private final TaskMapper taskMapper;
-
+    private final NotificationService notificationService;
     public AdminTaskService(TaskRepository taskRepository,
                             TaskMapper taskMapper,
-                            DateRangeParser dateRangeParser, UserInterface userInterface, AdminInterface adminInterface) {
-        super(taskRepository, dateRangeParser, userInterface, taskMapper);
+                            DateRangeParser dateRangeParser, UserInterface userInterface, AdminInterface adminInterface, NotificationService notificationService) {
+        super(taskRepository, dateRangeParser, userInterface, taskMapper,notificationService);
         this.adminInterface = adminInterface;
         this.taskMapper=taskMapper;
+        this.notificationService=notificationService;
     }
 
     @Transactional
@@ -53,6 +57,7 @@ public class AdminTaskService extends BaseTaskService {
         log.info("Admin {} assigned task to user ID: {}", currentAdmin.getUsername(), adminTaskRequest.assignedTo());
 
         Task savedTask = taskRepository.save(task);
+        notificationService.sendNotificationToAdmin(currentAdmin, NotificationType.TASK_ASSIGNED,"task with id"+task.getTaskId()+" assigned to user "+assignedUser.getUsername()+" successfully");
         log.info("Task created successfully with ID: {} for user: {}", savedTask.getTaskId(), task.getAssignedTo().getUsername());
         return taskMapper.toTaskDto(savedTask);
     }
@@ -109,23 +114,46 @@ public class AdminTaskService extends BaseTaskService {
                 .toList();
     }
 
+    public List<NotificationDto> adminNotifications(){
+        String username = getCurrentUsername();
+        log.info("Admin {} fetching tasks that they assigned to users", username);
+
+        Admin admin = adminInterface.findByUsername(username);
+        List<Notification> notifications = admin.getNotifications();
+
+        return notifications.stream()
+                .map(notification -> new NotificationDto(
+                        notification.getMessage(),
+                        notification.getType(),
+                        notification.getCreatedAt()
+                ))
+                .toList();
+    }
+
     public List<TaskDto> getTasksByDateRange(String startDate, String endDate) {
         return super.getTasksByDateRange(startDate, endDate);
     }
 
     @Transactional
     public TaskDto updateTask(Long taskId, UpdateTaskRequest updateTaskRequest) {
+        String username = getCurrentUsername();
+        log.info("Admin {} fetching tasks that they assigned to users", username);
+
+        Admin admin = adminInterface.findByUsername(username);
+        notificationService.sendNotificationToAdmin(admin,NotificationType.TASK_UPDATED,"Task with id : "+taskId+" updated successfully");
         return super.updateTask(taskId, updateTaskRequest);
+
     }
 
     @Transactional
     public String deleteTask(Long taskId) {
         String username = getCurrentUsername();
-
+        Admin admin = adminInterface.findByUsername(username);
         Task task = findTaskById(taskId);
         log.info("Admin deleting task with ID: {} by user: {}", taskId, username);
 
         taskRepository.delete(task);
+        notificationService.sendNotificationToAdmin(admin,NotificationType.TASK_DELETED,"Task with id : "+taskId+" deleted successfully");
         log.info("Task with ID: {} deleted successfully by admin", taskId);
         return "Task with id : " + taskId + " deleted successfully";
     }

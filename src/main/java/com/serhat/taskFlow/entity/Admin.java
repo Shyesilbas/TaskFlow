@@ -39,6 +39,9 @@ public class Admin implements UserDetails {
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
     private List<AppUser> appUser;
 
+    @OneToMany(mappedBy = "recipientAdmin",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<Notification> notifications;
+
     @ManyToOne
     @JoinColumn(name = "manager_id")
     private Manager manager;
