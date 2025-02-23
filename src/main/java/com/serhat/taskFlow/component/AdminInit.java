@@ -2,9 +2,11 @@ package com.serhat.taskFlow.component;
 
 import com.serhat.taskFlow.entity.Admin;
 import com.serhat.taskFlow.entity.AppUser;
+import com.serhat.taskFlow.entity.Manager;
 import com.serhat.taskFlow.entity.enums.MembershipPlan;
 import com.serhat.taskFlow.entity.enums.Role;
 import com.serhat.taskFlow.repository.AdminRepository;
+import com.serhat.taskFlow.repository.ManagerRepository;
 import com.serhat.taskFlow.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -18,6 +20,7 @@ public class AdminInit {
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ManagerRepository managerRepository;
 
     @Bean
     public CommandLineRunner initAdmin() {
@@ -48,6 +51,20 @@ public class AdminInit {
             }
             else {
                 System.out.println("Admin already exists, skipping initialization.");
+            }
+            if(managerRepository.findByUsername("manager").isEmpty()){
+                Manager manager = Manager.builder()
+                        .username("manager")
+                        .email("manager@gmail.com")
+                        .phone("112233")
+                        .password(passwordEncoder.encode("manager123"))
+                        .role(Role.MANAGER)
+                        .build();
+                managerRepository.save(manager);
+                System.out.println("Default manager created: username=manager, password=manager123");
+            }
+            else {
+                System.out.println("Manager already exists, skipping initialization.");
             }
         };
     }

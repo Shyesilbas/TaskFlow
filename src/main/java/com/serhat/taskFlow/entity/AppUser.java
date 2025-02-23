@@ -39,6 +39,10 @@ public class AppUser implements UserDetails {
     @OneToMany(mappedBy = "assignedTo",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
     private List<Task> tasks;
 
+    @ManyToOne
+    @JoinColumn(name = "admin_id")
+    private Admin admin;
+
 
     @PrePersist
     public void initUser(){

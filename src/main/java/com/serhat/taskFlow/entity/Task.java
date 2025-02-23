@@ -1,5 +1,6 @@
 package com.serhat.taskFlow.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,8 +33,10 @@ public class Task {
     private TaskStatus status; // TODO, IN_PROGRESS, DONE
 
     @Column(nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm")
     private LocalDateTime createdAt;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm")
     private LocalDateTime dueDate;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -18,12 +18,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "admins")
-public class Admin implements UserDetails {
+@Table(name = "managers")
+public class Manager implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long adminId;
+    private Long managerId;
 
     private String username;
     private String email;
@@ -33,20 +33,12 @@ public class Admin implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(mappedBy = "assignedBy",cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
-    private List<Task> tasks;
-
-    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
-    private List<AppUser> appUser;
-
-    @ManyToOne
-    @JoinColumn(name = "manager_id")
-    private Manager manager;
-
+    @OneToMany(mappedBy = "manager", cascade = CascadeType.ALL)
+    private List<Admin> admins;
 
     @PrePersist
     public void initUser(){
-        this.role=Role.ADMIN;
+        this.role=Role.MANAGER;
     }
 
     @Override
@@ -78,7 +70,6 @@ public class Admin implements UserDetails {
     public String getUsername(){
         return username;
     }
-
     @Override
     public String getPassword(){
         return password;

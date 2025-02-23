@@ -137,4 +137,40 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(AdminNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAdminNotFoundException(AdminNotFoundException e){
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                e.getMessage(),
+                "ADMIN NOT FOUND!",
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TaskCannotBeAssignedException.class)
+    public ResponseEntity<ErrorResponse> handleTaskCannotBeAssignedException(TaskCannotBeAssignedException e){
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                e.getMessage(),
+                "Task cannot be assigned!",
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserAlreadyAssignedToAdminException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyAssignedToAdminException(UserAlreadyAssignedToAdminException e){
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                e.getMessage(),
+                "Assigning Rejected!",
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
+    }
 }

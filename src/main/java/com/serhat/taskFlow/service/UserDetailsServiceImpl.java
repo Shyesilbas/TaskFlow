@@ -2,8 +2,10 @@ package com.serhat.taskFlow.service;
 
 import com.serhat.taskFlow.entity.Admin;
 import com.serhat.taskFlow.entity.AppUser;
+import com.serhat.taskFlow.entity.Manager;
 import com.serhat.taskFlow.exception.UserNotFoundException;
 import com.serhat.taskFlow.repository.AdminRepository;
+import com.serhat.taskFlow.repository.ManagerRepository;
 import com.serhat.taskFlow.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +20,7 @@ import java.util.Optional;
 public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
+    private final ManagerRepository managerRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -29,6 +32,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Optional<Admin> adminOpt = adminRepository.findByUsername(username);
         if (adminOpt.isPresent()) {
             return adminOpt.get();
+        }
+
+        Optional<Manager> managerOpt = managerRepository.findByUsername(username);
+        if (managerOpt.isPresent()){
+            return managerOpt.get();
         }
 
         throw new UserNotFoundException("User not found with username: " + username);

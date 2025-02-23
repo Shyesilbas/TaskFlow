@@ -1,15 +1,15 @@
 security:
   jwt:
-    secret-key: ${SECRET_KEY}
-    expiration-time: ${EXPIRATION_TIME}
+    secret-key: efb65b254e144009232b727370980c1438414c43ba710bb806d1e3bd1a9fec0457fc7fed06d8771f0e2a40acb296d178685db86753a0061e5bdfc2d6cbc467788054d07d24929cbfdb6ed5742fadf7a9c6cae2e1d4f68c3745aa4198915f1b43f44e2aa5aa64ce67e3ca6461dbd9439af7e610936f775eb963960ade34f42103d0be339ad72a20537c8ec698bc78386deb7d07dc4d090f0fa08c4bdc40c6fd222199ef9d8c90b084374e274df3097aad33605921bafa048ad84d66f9f9c7633fc1ed49ed14c1afddadc8306934d339154a8023a7f83095942e5c9f9d378657fca712f22a7580e397545bf3ff7dd0e791c39e9ad241024315347ed00e114ba632
+    expiration-time: 99972800000
 
 spring:
   application:
     name: taskFlow
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/taskFlow
+    username: postgres
+    password: 1234
     driver-class-name: org.postgresql.Driver
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect

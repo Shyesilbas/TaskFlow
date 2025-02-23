@@ -6,6 +6,6 @@ public record UpdateTaskRequest(
         String title,
         String description,
         String status,
-        LocalDateTime dueDate
+        String dueDate
 ) {
 }
