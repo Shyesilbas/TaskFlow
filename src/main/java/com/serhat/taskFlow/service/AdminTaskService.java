@@ -1,5 +1,6 @@
 package com.serhat.taskFlow.service;
 
+import com.serhat.taskFlow.dto.objects.AppUserDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.requests.AdminTaskRequest;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
@@ -44,7 +45,7 @@ public class AdminTaskService extends BaseTaskService {
         AppUser assignedUser = userInterface.findById(adminTaskRequest.assignedTo());
 
         if(!assignedUser.getAdmin().getAdminId().equals(currentAdmin.getAdminId())){
-            throw new TaskCannotBeAssignedException("");
+            throw new TaskCannotBeAssignedException("You can only assign tasks to users that related to you");
         }
 
         Task task = taskMapper.toAdminTaskEntity(adminTaskRequest, assignedUser, currentAdmin);
@@ -89,6 +90,22 @@ public class AdminTaskService extends BaseTaskService {
 
         return adminTasks.stream()
                 .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
+    public List<AppUserDto> myUsers(){
+        String username = getCurrentUsername();
+        log.info("Admin {} fetching tasks that they assigned to users", username);
+
+        Admin admin = adminInterface.findByUsername(username);
+        List<AppUser> myUsers = admin.getAppUser();
+
+        return myUsers.stream()
+                .map(appUser -> new AppUserDto(
+                        appUser.getUsername(),
+                        appUser.getEmail(),
+                        appUser.getPhone()
+                ))
                 .toList();
     }
 

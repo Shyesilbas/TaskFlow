@@ -3,6 +3,7 @@ package com.serhat.taskFlow.repository;
 import com.serhat.taskFlow.entity.Admin;
 import com.serhat.taskFlow.entity.AppUser;
 import com.serhat.taskFlow.entity.Task;
+import com.serhat.taskFlow.entity.enums.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,4 +19,5 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByAssignedToAndDueDateBetween(AppUser appUser, LocalDateTime start, LocalDateTime end);
 
 
+    List<Task> findByAssignedToAndStatus(AppUser user, TaskStatus status);
 }

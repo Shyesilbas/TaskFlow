@@ -49,7 +49,6 @@ public class AuthService {
                 "Register Successful! Now you can login with your credentials.",
                 user.getUsername(),
                 user.getEmail(),
-                user.getMembershipPlan(),
                 LocalDateTime.now()
         );
     }

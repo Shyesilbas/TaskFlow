@@ -1,5 +1,6 @@
 package com.serhat.taskFlow.controller;
 
+import com.serhat.taskFlow.dto.objects.AppUserDto;
 import com.serhat.taskFlow.dto.objects.TaskDto;
 import com.serhat.taskFlow.dto.requests.AdminTaskRequest;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
@@ -30,6 +31,14 @@ public class AdminTaskController {
         TaskDto task = adminTaskService.getTaskById(taskId);
         return ResponseEntity.ok(task);
     }
+
+    @GetMapping("/myUsers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<AppUserDto>> getMyUsers() {
+        List<AppUserDto> appUserDto = adminTaskService.myUsers();
+        return ResponseEntity.ok(appUserDto);
+    }
+
 
     @GetMapping("/getTasksAssignedToUser")
     @PreAuthorize("hasRole('ADMIN')")

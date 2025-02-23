@@ -44,7 +44,6 @@ public class AdminInit {
                         .phone("112233")
                         .password(passwordEncoder.encode("User123."))
                         .role(Role.CUSTOMER)
-                        .membershipPlan(MembershipPlan.BASIC)
                         .build();
                 userRepository.save(user);
                 System.out.println("Default admin created: username=user, password=User123.");

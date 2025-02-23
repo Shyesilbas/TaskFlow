@@ -1,8 +1,10 @@
 package com.serhat.taskFlow.controller;
 
 import com.serhat.taskFlow.dto.objects.TaskDto;
+import com.serhat.taskFlow.dto.requests.AdminDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
 import com.serhat.taskFlow.dto.requests.UserTaskRequest;
+import com.serhat.taskFlow.entity.enums.TaskStatus;
 import com.serhat.taskFlow.service.UserTaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,13 @@ public class UserTaskController {
         TaskDto createdTask = userTaskService.createTask(userTaskRequest);
         return ResponseEntity.ok(createdTask);
     }
+
+    @GetMapping("/myAdmin")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<AdminDto> myAdmin(){
+        return ResponseEntity.ok(userTaskService.myAdmin());
+    }
+
     @GetMapping("/ICreated")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<List<TaskDto>> getTasksICreated() {
@@ -38,6 +47,16 @@ public class UserTaskController {
         return ResponseEntity.ok(tasks);
     }
 
+    @GetMapping("/upcomingTasks")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<?> getUpcomingTasks() {
+        List<TaskDto> tasks = userTaskService.fetchUpcomingTasks();
+        if (tasks.isEmpty()){
+            return ResponseEntity.ok("No upcoming tasks found. (In five days)");
+        }
+        return ResponseEntity.ok(tasks);
+    }
+
     @PutMapping("/updateYourTask")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<TaskDto> updateUserTask(
@@ -48,6 +67,7 @@ public class UserTaskController {
         return ResponseEntity.ok(task);
     }
     @GetMapping("/by-date-range")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<List<TaskDto>> getTasksByDateRange(
             @RequestParam("startDate") String startDate,
             @RequestParam("endDate") String endDate) {
@@ -58,6 +78,11 @@ public class UserTaskController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<String> deleteUserTask(@RequestParam("taskId") Long taskId) {
        return ResponseEntity.ok(userTaskService.deleteTask(taskId));
+    }
 
+    @GetMapping("/by-status")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<List<TaskDto>> getTasksByStatus(@RequestParam TaskStatus taskStatus){
+        return ResponseEntity.ok(userTaskService.findByStatus(taskStatus));
     }
 }

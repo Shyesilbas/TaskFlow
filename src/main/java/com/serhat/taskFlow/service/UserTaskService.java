@@ -1,10 +1,13 @@
 package com.serhat.taskFlow.service;
 
 import com.serhat.taskFlow.dto.objects.TaskDto;
+import com.serhat.taskFlow.dto.requests.AdminDto;
 import com.serhat.taskFlow.dto.requests.UpdateTaskRequest;
 import com.serhat.taskFlow.dto.requests.UserTaskRequest;
+import com.serhat.taskFlow.entity.Admin;
 import com.serhat.taskFlow.entity.AppUser;
 import com.serhat.taskFlow.entity.Task;
+import com.serhat.taskFlow.entity.enums.TaskStatus;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
 import com.serhat.taskFlow.interfaces.UserInterface;
 import com.serhat.taskFlow.mapper.TaskMapper;
@@ -73,6 +76,49 @@ public class UserTaskService extends BaseTaskService {
             throw new RuntimeException(e);
         }
     }
+
+    public List<TaskDto> findByStatus(TaskStatus status){
+        String username = getCurrentUsername();
+        log.info("User {} listing tasks with status: {}", username, status);
+        AppUser user = getCurrentUser();
+
+        List<Task> tasksByStatus = taskRepository.findByAssignedToAndStatus(user,status);
+
+        return tasksByStatus.stream()
+                .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
+    public AdminDto myAdmin(){
+        String username = getCurrentUsername();
+        log.info("User {} looking for their admin", username);
+        AppUser user = getCurrentUser();
+
+        Admin admin = user.getAdmin();
+
+        return new AdminDto(
+                admin.getUsername(),
+                admin.getEmail(),
+                admin.getPhone()
+        );
+    }
+
+    public List<TaskDto> fetchUpcomingTasks() {
+        String username = getCurrentUsername();
+        log.info("Fetching upcoming tasks for user: {}", username);
+
+        AppUser user = getCurrentUser();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime fiveDaysLater = now.plusDays(5);
+
+        List<Task> upcomingTasks = taskRepository.findByAssignedToAndDueDateBetween(user, now, fiveDaysLater);
+        log.debug("User {} fetched {} upcoming tasks", username, upcomingTasks.size());
+
+        return upcomingTasks.stream()
+                .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
 
     @Override
     public TaskDto updateTask(Long taskId, UpdateTaskRequest updateTaskRequest) {

@@ -10,7 +10,6 @@ public record RegisterResponse(
         String message,
         String username,
         String email ,
-        MembershipPlan membershipPlan,
         LocalDateTime registerDate
 ) {
 }

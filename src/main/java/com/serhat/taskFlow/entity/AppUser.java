@@ -30,8 +30,6 @@ public class AppUser implements UserDetails {
     private String email;
     private String phone;
 
-    @Enumerated(EnumType.STRING)
-    private MembershipPlan membershipPlan;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -47,7 +45,6 @@ public class AppUser implements UserDetails {
     @PrePersist
     public void initUser(){
         this.role=Role.CUSTOMER;
-        this.membershipPlan=MembershipPlan.BASIC;
     }
 
     @Override
