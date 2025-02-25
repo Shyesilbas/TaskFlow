@@ -63,6 +63,8 @@ public class AdminTaskService extends BaseTaskService {
         Task savedTask = taskRepository.save(task);
         notificationService.sendNotificationToAdmin(currentAdmin, NotificationType.TASK_ASSIGNED,
                 "Task '" + savedTask.getTitle() + "' (ID: " + savedTask.getTaskId() + ") assigned to user " + assignedUser.getUsername());
+        notificationService.sendNotificationToUser(assignedUser, NotificationType.TASK_ASSIGNED,
+                "Task '" + savedTask.getTitle() + "' (ID: " + savedTask.getTaskId() + ") assigned to user " + assignedUser.getUsername());
         log.info("Task created successfully with ID: {} for user: {}", savedTask.getTaskId(), assignedUser.getUsername());
         return taskMapper.toTaskDto(savedTask);
     }

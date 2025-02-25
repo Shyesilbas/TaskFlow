@@ -25,7 +25,7 @@ const LoginForm = () => {
             localStorage.setItem('username', response.data.username);
             localStorage.setItem('role', response.data.role);
             console.log('Login Response:', response.data);
-            navigate('/tasks');
+            navigate('/dashboard');
         } catch (err) {
             setError('Login failed. Check your credentials.');
             console.error(err);
