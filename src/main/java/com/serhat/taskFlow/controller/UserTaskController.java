@@ -6,9 +6,13 @@ import com.serhat.taskFlow.dto.objects.TaskStatsDto;
 import com.serhat.taskFlow.dto.requests.*;
 import com.serhat.taskFlow.entity.enums.TaskPriority;
 import com.serhat.taskFlow.entity.enums.TaskStatus;
+import com.serhat.taskFlow.exception.TaskCannotBeUpdatedException;
+import com.serhat.taskFlow.exception.TaskNotFoundException;
 import com.serhat.taskFlow.service.UserTaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -88,10 +92,9 @@ public class UserTaskController {
 
     @PutMapping("/update-taskStatus")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<TaskDto> updateTaskStatus(@RequestParam Long taskId){
-        return ResponseEntity.ok(userTaskService.UpdateTaskStatus(taskId));
+    public ResponseEntity<TaskDto> updateTaskStatus(@RequestParam Long taskId) {
+            return ResponseEntity.ok(userTaskService.UpdateTaskStatus(taskId));
     }
-
     @GetMapping("/tasksByPriority")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<List<TaskDto>> getTasksByPriority(@RequestParam TaskPriority taskPriority) {

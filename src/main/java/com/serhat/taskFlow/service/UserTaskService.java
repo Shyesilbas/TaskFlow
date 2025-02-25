@@ -265,28 +265,36 @@ public class UserTaskService extends BaseTaskService {
         String username = getCurrentUsername();
         log.info("User {} marking task {} as completed", username, taskId);
         AppUser user = getCurrentUser();
-        Task task = findTaskById(taskId);
+        try {
+            Task task = findTaskById(taskId);
+            log.info("Task found: {} with status: {}", task.getTitle(), task.getStatus());
 
-        if(task.getStatus() == TaskStatus.TODO){
-            task.setStatus(TaskStatus.IN_PROGRESS);
-        }
-        if(task.getStatus() == TaskStatus.IN_PROGRESS){
-            task.setStatus(TaskStatus.DONE);
-        }
-        if(task.getStatus() == TaskStatus.DONE){
-            throw new TaskCannotBeUpdatedException("Task is done. Cannot be updated further");
-        }
+            if (task.getStatus() == TaskStatus.TODO) {
+                task.setStatus(TaskStatus.IN_PROGRESS);
+            } else if (task.getStatus() == TaskStatus.IN_PROGRESS) {
+                task.setStatus(TaskStatus.DONE);
+            } else if (task.getStatus() == TaskStatus.DONE) {
+                throw new TaskCannotBeUpdatedException("Task is done. Cannot be updated further");
+            }
 
-        checkUpdatePermission(task, username);
-        Task updatedTask = taskRepository.save(task);
+            checkUpdatePermission(task, username);
+            Task updatedTask = taskRepository.save(task);
+            log.info("Task updated to status: {}", updatedTask.getStatus());
 
-        notificationService.sendNotificationToUser(user, NotificationType.TASK_COMPLETED,
-                "Task '" + task.getTitle() + "' (ID: " + taskId + ") marked as "+task.getStatus());
-        if (task.getAssignedBy() != null) {
-            notificationService.sendNotificationToAdmin(task.getAssignedBy(), NotificationType.TASK_COMPLETED,
-                    "Task '" + task.getTitle() + "' (ID: " + taskId + ") marked as "+task.getStatus()+ " by " + username);
+            notificationService.sendNotificationToUser(user, NotificationType.TASK_UPDATED,
+                    "Task '" + task.getTitle() + "' (ID: " + taskId + ") marked as " + task.getStatus());
+            if (task.getAssignedBy() != null) {
+                notificationService.sendNotificationToAdmin(task.getAssignedBy(), NotificationType.TASK_UPDATED,
+                        "Task '" + task.getTitle() + "' (ID: " + taskId + ") marked as " + task.getStatus() + " by " + username);
+            }
+            return taskMapper.toTaskDto(updatedTask);
+        } catch (TaskNotFoundException e) {
+            log.error("Task not found for taskId: {}", taskId);
+            throw e;
+        } catch (Exception e) {
+            log.error("Error updating task status for taskId: {}", taskId, e);
+            throw e;
         }
-        return taskMapper.toTaskDto(updatedTask);
     }
 
 

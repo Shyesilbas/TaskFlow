@@ -74,23 +74,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException e){
 
         ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.BAD_REQUEST.value(),
                 e.getMessage(),
                 "User not found!",
                 LocalDateTime.now()
         );
-        return new ResponseEntity<>(errorResponse,HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException e){
 
         ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.BAD_REQUEST.value(),
                 e.getMessage(),
                 "Invalid Credentials!",
                 LocalDateTime.now()
         );
-        return new ResponseEntity<>(errorResponse,HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(errorResponse,HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(UsernameExists.class)
     public ResponseEntity<ErrorResponse> handleUsernameExistsException(UsernameExists e){

@@ -1,0 +1,38 @@
+.App {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.shifted {
+  margin-left: 250px;
+}
+
+.sidebar-toggle-span {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  color: #4a5568;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1500;
+  transition: color 0.2s ease;
+  background: #e2e8f0;
+  padding: 5px 8px;
+  border-radius: 5px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-toggle-span:hover {
+  color: #718096;
+  background: #edf2f7;
+}
