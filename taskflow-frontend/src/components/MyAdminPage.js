@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { getMyAdmin } from '../api';
-import './TaskPage.css';
+import './styles/TaskPage.css';
 
 const MyAdminPage = () => {
     const [adminInfo, setAdminInfo] = useState(null);

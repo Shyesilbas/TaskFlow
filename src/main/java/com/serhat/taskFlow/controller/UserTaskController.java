@@ -36,6 +36,13 @@ public class UserTaskController {
 
      */
 
+    @DeleteMapping("/deleteNotifications")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public void deleteNotifications(){
+        userTaskService.deleteNotifications();
+    }
+
+
     @GetMapping("/myAdmin")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<AdminDto> myAdmin(){

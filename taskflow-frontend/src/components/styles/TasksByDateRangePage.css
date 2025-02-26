@@ -1,0 +1,132 @@
+/* src/components/styles/TasksByDateRangePage.css */
+.tasks-by-date-range {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+}
+
+.tasks-by-date-range h1 {
+    font-size: 28px;
+    color: #2d3748;
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.tasks-by-date-range .error {
+    color: #e53e3e;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 16px;
+    background-color: #fee2e2;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.filter-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    background-color: #f7fafc;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.filter-form input[type="date"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.3s ease;
+    width: 200px;
+}
+
+.filter-form input[type="date"]:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+}
+
+.filter-form button {
+    padding: 10px 25px;
+    font-size: 16px;
+    background-color: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.filter-form button:hover {
+    background-color: #5a67d8;
+}
+
+.task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.task-title {
+    cursor: pointer;
+    color: #667eea;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.task-title:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+}
+
+.status-todo {
+    color: #007bff;
+    font-weight: 500;
+}
+
+.status-in_progress {
+    color: #ffc107;
+    font-weight: 500;
+}
+
+.status-done {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.task-item span {
+    font-size: 14px;
+    color: #4a5568;
+}
+
+.no-tasks {
+    text-align: center;
+    color: #718096;
+    font-size: 16px;
+    padding: 20px;
+    background-color: #f7fafc;
+    border-radius: 8px;
+    margin-top: 20px;
+}

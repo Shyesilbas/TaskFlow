@@ -2,7 +2,7 @@ import React from 'react';
 import TaskCommentForm from './TaskCommentForm';
 import DueDateChangeRequestForm from './DueDateChangeRequestForm';
 import { toast } from 'react-toastify';
-import './TaskPage.css';
+import './styles/TaskPage.css';
 
 const TaskDetails = ({ task, onClose, onUpdateStatus, onDeleteTask, parseDate }) => {
     return (

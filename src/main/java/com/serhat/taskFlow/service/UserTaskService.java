@@ -14,8 +14,10 @@ import com.serhat.taskFlow.interfaces.AdminInterface;
 import com.serhat.taskFlow.interfaces.DateRangeParser;
 import com.serhat.taskFlow.interfaces.UserInterface;
 import com.serhat.taskFlow.mapper.TaskMapper;
+import com.serhat.taskFlow.repository.NotificationRepository;
 import com.serhat.taskFlow.repository.TaskChangeRequestRepository;
 import com.serhat.taskFlow.repository.TaskRepository;
+import com.serhat.taskFlow.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,11 +32,13 @@ import java.util.List;
 @Slf4j
 public class UserTaskService extends BaseTaskService {
     private final TaskChangeRequestRepository taskChangeRequestRepository;
+    private final UserRepository userRepository;
 
-    public UserTaskService(TaskRepository taskRepository, TaskMapper taskMapper, DateRangeParser dateRangeParser,
+    public UserTaskService(UserRepository userRepository,TaskRepository taskRepository, TaskMapper taskMapper, DateRangeParser dateRangeParser,
                            UserInterface userInterface, AdminInterface adminInterface , NotificationService notificationService, TaskChangeRequestRepository taskChangeRequestRepository) {
         super(taskRepository, taskMapper, dateRangeParser, userInterface, adminInterface, notificationService);
         this.taskChangeRequestRepository = taskChangeRequestRepository;
+        this.userRepository=userRepository;
     }
 
     /*
@@ -136,6 +140,16 @@ public class UserTaskService extends BaseTaskService {
         }
 
         return new AdminDto(admin.getUsername(), admin.getEmail(), admin.getPhone());
+    }
+
+    @Transactional
+    public void deleteNotifications(){
+        String username = getCurrentUsername();
+        log.info("User {} deleting notifications", username);
+        AppUser user = getCurrentUser();
+        user.getNotifications().clear();
+        userRepository.save(user);
+
     }
 
     public TaskStatsDto getTaskStats() {

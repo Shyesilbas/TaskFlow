@@ -5,7 +5,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { getUpcomingTasks, updateTaskStatus, deleteTask } from '../api';
 import { parseDate } from '../utils/dateUtils';
 import TaskDetails from './TaskDetails';
-import './TaskPage.css';
+import './styles/UpcomingTaskPage.css';
 
 const UpcomingTasksPage = () => {
     const [tasks, setTasks] = useState([]);
@@ -58,24 +58,51 @@ const UpcomingTasksPage = () => {
     };
 
     return (
-        <div className="task-page">
+        <div className="upcoming-tasks-page">
             <h1>Upcoming Tasks</h1>
             {error && <p className="error">{error}</p>}
             {tasks.length > 0 ? (
-                <ul className="task-list">
+                <div className="task-card-container">
                     {tasks.map((task) => (
-                        <li key={task.taskId} className="task-item">
-                            <strong className="task-title" onClick={() => handleTaskClick(task)}>
-                                {task.title}
-                            </strong> -
-                            <span className={`status-${task.status.toLowerCase()}`}>{task.status}</span>
-                            <br />
-                            <span>Due: {parseDate(task.dueDate).toLocaleDateString()}</span>
-                        </li>
+                        <div key={task.taskId} className="task-card">
+                            <div className="task-header">
+                                <strong
+                                    className="task-title"
+                                    onClick={() => handleTaskClick(task)}
+                                >
+                                    {task.title}
+                                </strong>
+                                <span className={`priority-${task.taskPriority?.toLowerCase()}`}>
+                                    {task.taskPriority || 'N/A'}
+                                </span>
+                            </div>
+                            <div className="task-body">
+                                <p className="task-description">
+                                    Created at: {task.createdAt || ''}
+                                </p>
+                                <p className="task-description">
+                                    Description: {task.description || 'No description available'}
+                                </p>
+                                <p className="task-description">
+                                    Your Comment: {task.userComment || 'No description available'}
+                                </p>
+                                <p className="task-description">
+                                    Admin Comment: {task.adminComment || ''}
+                                </p>
+                                <div className="task-details">
+                                    <span className={`status-${task.status.toLowerCase()}`}>
+                                        Status: {task.status}
+                                    </span>
+                                    <span className="due-date">
+                                        Due: {parseDate(task.dueDate).toLocaleDateString()}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     ))}
-                </ul>
+                </div>
             ) : (
-                <p>No upcoming tasks in the next 5 days.</p>
+                <p className="no-tasks">No upcoming tasks in the next 5 days.</p>
             )}
 
             {selectedTask && (

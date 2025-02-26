@@ -1,30 +1,36 @@
-// src/components/TasksByStatusPage.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { getTasksByStatus, updateTaskStatus, deleteTask } from '../api';
 import { parseDate } from '../utils/dateUtils';
 import TaskDetails from './TaskDetails';
-import './TaskPage.css';
+import './styles/TasksByStatus.css';
 
 const TasksByStatusPage = () => {
-    const [statusFilter, setStatusFilter] = useState('');
-    const [tasks, setTasks] = useState([]);
+    const [tasks, setTasks] = useState({ TODO: [], IN_PROGRESS: [], DONE: [] });
     const [selectedTask, setSelectedTask] = useState(null);
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    const handleFilter = async () => {
-        if (!statusFilter) return;
+    useEffect(() => {
+        fetchAllTasks();
+    }, []);
 
+    const fetchAllTasks = async () => {
         try {
-            const response = await getTasksByStatus(statusFilter);
-            setTasks(response.data);
+            const statuses = ['TODO', 'IN_PROGRESS', 'DONE'];
+            const tasksByStatus = { TODO: [], IN_PROGRESS: [], DONE: [] };
+
+            for (const status of statuses) {
+                const response = await getTasksByStatus(status);
+                tasksByStatus[status] = response.data;
+            }
+            setTasks(tasksByStatus);
         } catch (err) {
             const errorMessage = err.response?.data?.error || err.message || 'Unknown error';
-            setError(`Failed to filter tasks: ${errorMessage}`);
-            console.error('Filter error:', err.response?.data || err);
-            toast.error(`Failed to filter tasks: ${errorMessage}`);
+            setError(`Failed to load tasks: ${errorMessage}`);
+            toast.error(`Failed to load tasks: ${errorMessage}`);
+            console.error('Fetch error:', err);
         }
     };
 
@@ -34,20 +40,35 @@ const TasksByStatusPage = () => {
     const handleUpdateStatus = async (taskId) => {
         try {
             const response = await updateTaskStatus(taskId);
-            setTasks(tasks.map(t => t.taskId === taskId ? response.data : t));
-            setSelectedTask(response.data);
+            const updatedTask = response.data;
+            setTasks(prev => {
+                const newTasks = { ...prev };
+                // Remove from old status
+                Object.keys(newTasks).forEach(status => {
+                    newTasks[status] = newTasks[status].filter(t => t.taskId !== taskId);
+                });
+                // Add to new status
+                newTasks[updatedTask.status] = [...newTasks[updatedTask.status], updatedTask];
+                return newTasks;
+            });
+            setSelectedTask(updatedTask);
             toast.success('Task status updated!');
         } catch (err) {
             const errorMessage = err.response?.data?.error || err.message || 'Unknown error';
             toast.error(`Failed to update status: ${errorMessage}`);
-            console.error('Update status error:', err.response?.data || err);
+            console.error('Update status error:', err);
         }
     };
 
     const handleDeleteTask = async (taskId) => {
         try {
             const response = await deleteTask(taskId);
-            setTasks(tasks.filter(t => t.taskId !== taskId));
+            setTasks(prev => ({
+                ...prev,
+                TODO: prev.TODO.filter(t => t.taskId !== taskId),
+                IN_PROGRESS: prev.IN_PROGRESS.filter(t => t.taskId !== taskId),
+                DONE: prev.DONE.filter(t => t.taskId !== taskId)
+            }));
             closeModal();
             toast.success(response.data);
         } catch (err) {
@@ -60,31 +81,35 @@ const TasksByStatusPage = () => {
         <div className="task-page">
             <h1>Tasks by Status</h1>
             {error && <p className="error">{error}</p>}
-            <div className="filter-form">
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                    <option value="">Select Status</option>
-                    <option value="TODO">To Do</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="DONE">Done</option>
-                </select>
-                <button onClick={handleFilter}>Filter</button>
+
+            <div className="status-container">
+                {['TODO', 'IN_PROGRESS', 'DONE'].map(status => (
+                    <div key={status} className="status-card">
+                        <h2>{status.replace('_', ' ')}</h2>
+                        {tasks[status].length > 0 ? (
+                            <ul className="task-list">
+                                {tasks[status].map(task => (
+                                    <li key={task.taskId} className="task-item">
+                                        <strong
+                                            className="task-title"
+                                            onClick={() => handleTaskClick(task)}
+                                        >
+                                            {task.title}
+                                        </strong> -
+                                        <span className={`status-${task.status.toLowerCase()}`}>
+                                            {task.status}
+                                        </span>
+                                        <br />
+                                        <span>Due: {parseDate(task.dueDate).toLocaleDateString()}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>No tasks found.</p>
+                        )}
+                    </div>
+                ))}
             </div>
-            {tasks.length > 0 ? (
-                <ul className="task-list">
-                    {tasks.map((task) => (
-                        <li key={task.taskId} className="task-item">
-                            <strong className="task-title" onClick={() => handleTaskClick(task)}>
-                                {task.title}
-                            </strong> -
-                            <span className={`status-${task.status.toLowerCase()}`}>{task.status}</span>
-                            <br />
-                            <span>Due: {parseDate(task.dueDate).toLocaleDateString()}</span>
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p>No tasks found.</p>
-            )}
 
             {selectedTask && (
                 <TaskDetails

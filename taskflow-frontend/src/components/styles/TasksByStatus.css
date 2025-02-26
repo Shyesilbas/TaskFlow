@@ -1,0 +1,72 @@
+.task-page {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.task-page h1 {
+    font-size: 24px;
+    color: #2d3748;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.task-page .error {
+    color: #e53e3e;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.status-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.status-card {
+    flex: 1;
+    min-width: 300px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.status-card h2 {
+    font-size: 20px;
+    color: #2d3748;
+    margin-bottom: 15px;
+    text-transform: capitalize;
+}
+
+.status-card .task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.status-card .task-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.status-card .task-item:last-child {
+    border-bottom: none;
+}
+
+.status-card .task-title {
+    cursor: pointer;
+    color: #667eea;
+    transition: color 0.2s ease;
+}
+
+.status-card .task-title:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.status-card .status-todo { color: #007bff; }
+.status-card .status-in_progress { color: #ffc107; }
+.status-card .status-done { color: #28a745; }

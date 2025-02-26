@@ -1,10 +1,9 @@
-// src/components/Dashboard.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { getAssignedToMe, getTaskStats, getUpcomingTasks, getNotifications, logout } from '../api';
 import { parseDate } from '../utils/dateUtils';
-import './Dashboard.css';
+import './styles/Dashboard.css';
 
 const Dashboard = () => {
     const [tasks, setTasks] = useState([]);
@@ -40,33 +39,35 @@ const Dashboard = () => {
 
     const handleLogout = () => {
         toast(
-            <div>
+            <div className="logout-toast">
                 <p>Are you sure you want to logout?</p>
-                <button
-                    style={{ marginRight: '10px', backgroundColor: '#2d8659', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px' }}
-                    onClick={async () => {
-                        try {
-                            const response = await logout();
-                            console.log('Logout Response:', response.data);
-                            localStorage.clear();
-                            navigate('/login');
-                            toast.success('Logged out successfully!');
-                        } catch (err) {
-                            console.error('Logout failed:', err);
-                            localStorage.clear();
-                            navigate('/login');
-                            toast.error('Logout failed, but session cleared.');
-                        }
-                    }}
-                >
-                    Yes
-                </button>
-                <button
-                    style={{ backgroundColor: '#4a5568', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px' }}
-                    onClick={() => toast.dismiss()}
-                >
-                    Cancel
-                </button>
+                <div className="logout-toast-buttons">
+                    <button
+                        className="logout-confirm-btn"
+                        onClick={async () => {
+                            try {
+                                const response = await logout();
+                                console.log('Logout Response:', response.data);
+                                localStorage.clear();
+                                navigate('/login');
+                                toast.success('Logged out successfully!');
+                            } catch (err) {
+                                console.error('Logout failed:', err);
+                                localStorage.clear();
+                                navigate('/login');
+                                toast.error('Logout failed, but session cleared.');
+                            }
+                        }}
+                    >
+                        Yes
+                    </button>
+                    <button
+                        className="logout-cancel-btn"
+                        onClick={() => toast.dismiss()}
+                    >
+                        Cancel
+                    </button>
+                </div>
             </div>,
             { position: 'top-center', autoClose: false, closeOnClick: false, draggable: false }
         );
@@ -76,7 +77,9 @@ const Dashboard = () => {
         <div className="dashboard">
             <header>
                 <h1>Welcome to TaskFlow, {localStorage.getItem('username')}</h1>
-                <button onClick={handleLogout}>Logout</button>
+                <button className="logout-btn" onClick={handleLogout}>
+                    Logout
+                </button>
             </header>
 
             {error && <p className="error">{error}</p>}

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { getDueDateChangeRequests } from '../api';
 import { parseDate } from '../utils/dateUtils';
-import './TaskPage.css';
+import './styles/TaskPage.css';
 
 const DueDateRequestsPage = () => {
     const [requests, setRequests] = useState([]);

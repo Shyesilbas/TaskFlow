@@ -52,6 +52,9 @@ export const updateTaskStatus = (taskId) =>
     api.put(`/api/tasks/user/update-taskStatus?taskId=${taskId}`);
 export const deleteTask = (taskId) =>
     api.delete(`/api/tasks/user/deleteYourTask?taskId=${taskId}`);
+
+export const deleteNotifications = () =>
+    api.delete(`/api/tasks/user/deleteNotifications`);
 export const addCommentToTask = (taskId, comment) =>
     api.put('/api/tasks/user/addCommentToTask', { taskId, comment });
 export const requestDueDateChange = (taskId, newDate, message) =>

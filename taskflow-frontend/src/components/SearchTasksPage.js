@@ -5,7 +5,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { searchTasksByKeyword, updateTaskStatus, deleteTask } from '../api';
 import { parseDate } from '../utils/dateUtils';
 import TaskDetails from './TaskDetails';
-import './TaskPage.css';
+import './styles/TaskPage.css';
 
 const SearchTasksPage = () => {
     const [keywordSearch, setKeywordSearch] = useState('');

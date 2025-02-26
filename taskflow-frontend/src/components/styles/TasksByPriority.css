@@ -1,0 +1,147 @@
+.task-page {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.task-page h1 {
+    font-size: 24px;
+    color: #2d3748;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.task-page .error {
+    color: #e53e3e;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.priority-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.priority-card {
+    flex: 1;
+    min-width: 300px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.priority-card h2 {
+    font-size: 20px;
+    color: #2d3748;
+    margin-bottom: 15px;
+    text-transform: capitalize;
+}
+
+.priority-card .task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.priority-card .task-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.priority-card .task-item:last-child {
+    border-bottom: none;
+}
+
+.priority-card .task-title {
+    cursor: pointer;
+    color: #667eea;
+    transition: color 0.2s ease;
+}
+
+.priority-card .task-title:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+/* styles/TasksByPriority.css'e eklenecek stiller */
+
+.date-filter-container {
+    background-color: #f5f5f5;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.date-filter-container h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.date-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.date-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.date-field label {
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.date-field input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.apply-filter {
+    background-color: #4caf50;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.clear-filter {
+    background-color: #f44336;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.filter-active {
+    margin-top: 10px;
+    padding: 8px;
+    background-color: #e3f2fd;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+@media (max-width: 768px) {
+    .date-inputs {
+        flex-direction: column;
+    }
+}
+
+.priority-card .status-todo { color: #007bff; }
+.priority-card .status-in_progress { color: #ffc107; }
+.priority-card .status-done { color: #28a745; }

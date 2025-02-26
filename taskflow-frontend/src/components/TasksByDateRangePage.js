@@ -5,7 +5,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import { getTasksByDateRange, updateTaskStatus, deleteTask } from '../api';
 import { parseDate } from '../utils/dateUtils';
 import TaskDetails from './TaskDetails';
-import './TaskPage.css';
+import './styles/TasksByDateRangePage.css';
 
 const TasksByDateRangePage = () => {
     const [startDate, setStartDate] = useState('');
