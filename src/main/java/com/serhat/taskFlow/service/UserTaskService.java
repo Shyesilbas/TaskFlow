@@ -81,6 +81,16 @@ public class UserTaskService extends BaseTaskService {
                 .toList();
     }
 
+    public List<TaskDto> getAllTasks(){
+        String username = getCurrentUsername();
+        log.info("User {} fetching tasks", username);
+        AppUser user = getCurrentUser();
+        List<Task> tasks = taskRepository.findByAssignedTo(user);
+        return tasks.stream()
+                .map(taskMapper::toTaskDto)
+                .toList();
+    }
+
     public List<TaskDto> tasksAssignedToMe() {
         try {
             String username = getCurrentUsername();

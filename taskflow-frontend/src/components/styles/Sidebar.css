@@ -1,93 +1,79 @@
 /* src/components/styles/Sidebar.css */
 .sidebar {
-    height: 100%;
-    width: 0;
+    width: 250px;
+    height: 100vh;
+    background: #2d3748;
+    color: #e2e8f0;
     position: fixed;
-    z-index: 1000;
     top: 0;
-    left: 0;
-    background-color: #2d3748;
-    overflow-x: hidden;
-    transition: 0.5s;
-    padding-top: 20px;
+    left: -250px;
+    transition: left 0.3s ease;
 }
 
 .sidebar.open {
-    width: 250px;
+    left: 0;
 }
 
 .sidebar-header {
-    padding: 10px 20px;
-    color: white;
-    text-align: center;
+    padding: 20px;
+    border-bottom: 1px solid #4a5568;
 }
 
 .sidebar-header h3 {
     margin: 0;
     font-size: 24px;
+    font-weight: 600;
 }
 
 .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    padding: 10px 0;
+    padding: 20px 0;
 }
 
-.sidebar-nav a {
-    padding: 10px 20px;
+.sidebar-nav a,
+.sidebar-dropdown .dropdown-title {
+    display: block;
+    padding: 12px 20px;
+    color: #e2e8f0;
     text-decoration: none;
     font-size: 16px;
-    color: #a0aec0;
-    display: block;
-    transition: 0.3s;
+    transition: background 0.2s ease, padding-left 0.2s ease;
 }
 
-.sidebar-nav a:hover {
-    color: #ffffff;
-    background-color: #4a5568;
+.sidebar-nav a:hover,
+.sidebar-dropdown .dropdown-title:hover {
+    background: #4a5568;
+    padding-left: 25px;
 }
 
-.sidebar-nav a.active {
-    color: #ffffff;
-    background-color: #718096;
-}
-
-/* Dropdown Styles */
-.sidebar-dropdown {
-    padding: 0;
-}
-
-.dropdown-title {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: #a0aec0;
-    display: block;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.dropdown-title:hover {
-    color: #ffffff;
-    background-color: #4a5568;
-}
-
-.dropdown-menu {
-    background-color: #4a5568;
+.sidebar-dropdown .dropdown-menu {
     padding-left: 20px;
 }
 
-.dropdown-menu a {
-    padding: 8px 20px;
+.sidebar-dropdown .dropdown-menu a {
     font-size: 14px;
-    color: #e2e8f0;
+    padding: 10px 20px;
 }
 
-.dropdown-menu a:hover {
-    color: #ffffff;
-    background-color: #718096;
+.notification-link {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-.dropdown-menu a.active {
-    color: #ffffff;
-    background-color: #a0aec0;
+.notification-link a {
+    display: block;
+    padding: 12px 20px;
+    width: 100%;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: #f56565;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba(245, 101, 101, 0.8);
 }

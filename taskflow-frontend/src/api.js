@@ -48,6 +48,8 @@ export const getDueDateChangeRequests = () => api.get('/api/tasks/user/my-due-da
 export const searchTasksByKeyword = (keywords) =>
     api.get(`/api/tasks/user/searchTask/by-keyword?keyword=${keywords}`);
 
+export const getAllTasks = () =>
+    api.get(`/api/tasks/user/getAllTasks`);
 export const updateTaskStatus = (taskId) =>
     api.put(`/api/tasks/user/update-taskStatus?taskId=${taskId}`);
 export const deleteTask = (taskId) =>

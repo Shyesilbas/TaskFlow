@@ -1,12 +1,24 @@
 // src/components/Sidebar.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import './styles/Sidebar.css';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
     const [isTasksOpen, setIsTasksOpen] = useState(false);
+    const [hasNewNotification, setHasNewNotification] = useState(
+        localStorage.getItem('hasNewNotification') === 'true'
+    );
 
     const toggleTasksMenu = () => setIsTasksOpen(!isTasksOpen);
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setHasNewNotification(localStorage.getItem('hasNewNotification') === 'true');
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
     return (
         <div className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -21,41 +33,32 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     My Admin
                 </NavLink>
 
-                {/* My Tasks Dropdown */}
                 <div className="sidebar-dropdown">
                     <span onClick={toggleTasksMenu} className="dropdown-title">
                         My Tasks {isTasksOpen ? '▲' : '▼'}
                     </span>
                     {isTasksOpen && (
                         <div className="dropdown-menu">
+                            <NavLink to="/my-tasks" onClick={isOpen ? toggleSidebar : null}>
+                                My Tasks
+                            </NavLink>
                             <NavLink to="/assigned-to-me" onClick={isOpen ? toggleSidebar : null}>
                                 Assigned to Me
                             </NavLink>
                             <NavLink to="/search-tasks" onClick={isOpen ? toggleSidebar : null}>
                                 Search Tasks
                             </NavLink>
-                            <NavLink to="/undone-tasks" onClick={isOpen ? toggleSidebar : null}>
-                                Undone Tasks
-                            </NavLink>
-                            <NavLink to="/tasks-by-priority" onClick={isOpen ? toggleSidebar : null}>
-                                Tasks by Priority
-                            </NavLink>
-                            <NavLink to="/tasks-by-status" onClick={isOpen ? toggleSidebar : null}>
-                                Tasks by Status
-                            </NavLink>
-                            <NavLink to="/upcoming-tasks" onClick={isOpen ? toggleSidebar : null}>
-                                Upcoming Tasks
-                            </NavLink>
-                            <NavLink to="/tasks-by-date-range" onClick={isOpen ? toggleSidebar : null}>
-                                Tasks by Date Range
-                            </NavLink>
                         </div>
                     )}
                 </div>
 
-                <NavLink to="/notifications" onClick={isOpen ? toggleSidebar : null}>
-                    Notifications
-                </NavLink>
+                <div className="notification-link">
+                    <NavLink to="/notifications" onClick={isOpen ? toggleSidebar : null}>
+                        Notifications
+                    </NavLink>
+                    {hasNewNotification && <span className="notification-badge"></span>}
+                </div>
+
                 <NavLink to="/due-date-requests" onClick={isOpen ? toggleSidebar : null}>
                     Due Date Requests
                 </NavLink>

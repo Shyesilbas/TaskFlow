@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './styles/AuthForm.css';
+import '../styles/AuthForm.css';
 
-const LoginForm = () => {
+const RegisterForm = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const navigate = useNavigate();
@@ -16,25 +18,24 @@ const LoginForm = () => {
         setSuccess('');
 
         try {
-            const response = await axios.post('http://localhost:8080/auth/login', {
+            const response = await axios.post('http://localhost:8080/auth/register', {
                 username,
                 password,
+                email,
+                phone,
             });
-            setSuccess(response.data.message);
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('username', response.data.username);
-            localStorage.setItem('role', response.data.role);
-            console.log('Login Response:', response.data);
-            navigate('/dashboard');
+            setSuccess('Registration successful! Please login.');
+            console.log('Register Response:', response.data);
+            setTimeout(() => navigate('/login'), 2000);
         } catch (err) {
-            setError('Login failed. Check your credentials.');
+            setError('Registration failed. Username might be taken or invalid data.');
             console.error(err);
         }
     };
 
     return (
         <div className="auth-form">
-            <h2>Login to TaskFlow</h2>
+            <h2>Register for TaskFlow</h2>
             {error && <p className="error">{error}</p>}
             {success && <p className="success">{success}</p>}
             <form onSubmit={handleSubmit}>
@@ -48,6 +49,24 @@ const LoginForm = () => {
                     />
                 </div>
                 <div className="form-group">
+                    <label>Email</label>
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Phone</label>
+                    <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="form-group">
                     <label>Password</label>
                     <input
                         type="password"
@@ -56,13 +75,13 @@ const LoginForm = () => {
                         required
                     />
                 </div>
-                <button type="submit">Login</button>
+                <button type="submit">Register</button>
             </form>
             <p>
-                Don't have an account? <a href="/register">Register here</a>
+                Already have an account? <a href="/login">Login here</a>
             </p>
         </div>
     );
 };
 
-export default LoginForm;
+export default RegisterForm;

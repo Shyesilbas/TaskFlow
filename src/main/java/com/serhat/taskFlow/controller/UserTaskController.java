@@ -147,6 +147,11 @@ public class UserTaskController {
        return ResponseEntity.ok(userTaskService.deleteTask(taskId));
     }
 
+    @GetMapping("/getAllTasks")
+    public ResponseEntity<List<TaskDto>> getAllTasks(){
+        return ResponseEntity.ok(userTaskService.getAllTasks());
+    }
+
     @GetMapping("/by-status")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<List<TaskDto>> getTasksByStatus(@RequestParam TaskStatus taskStatus){

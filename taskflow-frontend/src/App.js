@@ -2,19 +2,15 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import LoginForm from './components/LoginForm';
-import RegisterForm from './components/RegisterForm';
+import LoginForm from './components/auth/LoginForm';
+import RegisterForm from './components/auth/RegisterForm';
 import Dashboard from './components/Dashboard';
 import AssignedToMePage from './components/AssignedToMePage';
 import MyAdminPage from './components/MyAdminPage';
 import SearchTasksPage from './components/SearchTasksPage';
-import UndoneTasksPage from './components/UndoneTasksPage';
-import TasksByPriorityPage from './components/TasksByPriorityPage';
-import TasksByStatusPage from './components/TasksByStatusPage';
-import UpcomingTasksPage from './components/UpcomingTasksPage';
-import TasksByDateRangePage from './components/TasksByDateRangePage';
 import NotificationsPage from './components/NotificationsPage';
 import DueDateRequestsPage from './components/DueDateRequestsPage';
+import MyTasksPage from './components/MyTasksPage';
 import './App.css';
 
 function App() {
@@ -36,11 +32,7 @@ function App() {
                         <Route path="/assigned-to-me" element={<AssignedToMePage />} />
                         <Route path="/my-admin" element={<MyAdminPage />} />
                         <Route path="/search-tasks" element={<SearchTasksPage />} />
-                        <Route path="/undone-tasks" element={<UndoneTasksPage />} />
-                        <Route path="/tasks-by-priority" element={<TasksByPriorityPage />} />
-                        <Route path="/tasks-by-status" element={<TasksByStatusPage />} />
-                        <Route path="/upcoming-tasks" element={<UpcomingTasksPage />} />
-                        <Route path="/tasks-by-date-range" element={<TasksByDateRangePage />} />
+                        <Route path="/my-tasks" element={<MyTasksPage />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
                         <Route path="/due-date-requests" element={<DueDateRequestsPage />} />
                         <Route path="/" element={<Dashboard />} />
